@@ -2,9 +2,9 @@
    feed that fails, a line ESPN drops, a postponement, Army-Navy week, the playoff and a new
    season is proved before the real thing happens.
 
-    node cfb/tools/simulate.js            must end "0 failures"
+    node tools/simulate.js            must end "0 failures"
 
-   The real schedule (cfb/state.json) is played with invented scores. ESPN's scoreboards,
+   The real schedule (state.json) is played with invented scores. ESPN's scoreboards,
    rankings and the CFB News feeds are written in their shapes (fixtures.js) to a scratch folder
    and update.js and news.js are run --offline over them, the clock set by CFB_NOW, as the job
    would run through a week:
@@ -27,7 +27,7 @@
    data/history.json, between rounds and over; and the first run of the next season (last season
    appended to the history from the same scoreboards, or a refusal when that pull fails, has an
    empty week or comes back short of the last publish). After each run the smoke test runs,
-   strict, over the files it wrote and the last publish before it. Nothing in cfb/ is written:
+   strict, over the files it wrote and the last publish before it. Nothing in the repo is written:
    the scratch folder is os.tmpdir(), removed at the end (CFB_SIM_KEEP=1 keeps it).
 
    CFB_SIM_TOOLS runs update.js and news.js from another folder (the gate's own tests run a

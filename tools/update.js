@@ -1,9 +1,9 @@
 /* The college job: read this season from ESPN, rate every team, call every game, freeze
    the call and the line before kickoff, grade what has finished, simulate the playoff
-   picture and write cfb/state.json, which is everything the page shows.
+   picture and write state.json, which is everything the page shows.
 
-    node cfb/tools/update.js              the season, from ESPN
-    node cfb/tools/update.js --offline    from the feed files in cfb/tools/out/ (a missing file is a failed download)
+    node tools/update.js              the season, from ESPN
+    node tools/update.js --offline    from the feed files in tools/out/ (a missing file is a failed download)
 
    Free: ESPN's public feeds only, nothing spends a credit. The season and the clock come
    from season.js (CFB_SEASON and CFB_NOW stand in for them in tests); CFB_STATE, CFB_OUT,
@@ -39,8 +39,8 @@
      or comes back short of the finals the last publish of that season had, the run stops (the
      new season cannot be rated on a season with a hole in it).
 
-   The model is cfb/tools/elo.js with the parameters fit.js wrote to cfb/data/model.json,
-   replayed over cfb/data/history.json and then this season's finished games, in date
+   The model is tools/elo.js with the parameters fit.js wrote to data/model.json,
+   replayed over data/history.json and then this season's finished games, in date
    order. */
 'use strict';
 const fs = require('fs'), path = require('path');
@@ -199,10 +199,10 @@ async function loadHistory(notes, prev) {
       /* a scratch team table: last season's conferences must not overwrite this season's */
       let got;
       try { got = await HIST.seasonRows(s, (y, w, t) => feed(`sb_${y}_${t}_${w}.json`, () => E.scoreboard(y, w, t)), {}); }
-      catch (e) { throw new Refusal(`history.json ends at ${last} and the ${s} season did not download (${e.message}); ${SEASON} cannot be rated without it. Run node cfb/tools/history.js ${s} ${s} when ESPN answers`); }
+      catch (e) { throw new Refusal(`history.json ends at ${last} and the ${s} season did not download (${e.message}); ${SEASON} cannot be rated without it. Run node tools/history.js ${s} ${s} when ESPN answers`); }
       /* held to the last publish of that season: a week that answered short is a hole */
       const short = prev && prev.season === s ? HIST.shortOf(got, prev.games.filter(g => g.state === 'final' && realGame(g)).map(g => ({ type: g.type, week: g.week }))) : [];
-      if (short.length) throw new Refusal(`history.json ends at ${last} and ESPN's ${s} season came back short of its last publish (${short.join('; ')}); ${SEASON} cannot be rated on a season with a hole in it. Run node cfb/tools/history.js ${s} ${s} when ESPN answers in full`);
+      if (short.length) throw new Refusal(`history.json ends at ${last} and ESPN's ${s} season came back short of its last publish (${short.join('; ')}); ${SEASON} cannot be rated on a season with a hole in it. Run node tools/history.js ${s} ${s} when ESPN answers in full`);
       rows.push(...got);
     }
     if (!rows.length) throw new Refusal(`history.json ends at ${last} and ESPN has no finals for ${need.join(', ')}`);

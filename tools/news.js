@@ -2,8 +2,8 @@
    with the writing done from the numbers since nobody is going to write forty college
    previews a week by hand.
 
-    node cfb/tools/news.js              after update.js; reads cfb/state.json, writes cfb/news.json
-    node cfb/tools/news.js --offline    from the ESPN answers a previous run saved in cfb/tools/out/
+    node tools/news.js              after update.js; reads state.json, writes news.json
+    node tools/news.js --offline    from the ESPN answers a previous run saved in tools/out/
 
    For every game of the current week with a major school in it (or a ranked team), ESPN's
    game summary gives the broadcast, the venue, both teams' scoring and yardage per game and

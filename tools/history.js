@@ -1,7 +1,7 @@
-/* Past seasons' results from ESPN, in cfb/data/history.json.
+/* Past seasons' results from ESPN, in data/history.json.
 
-    node cfb/tools/history.js               2014 to the season before the one in play
-    node cfb/tools/history.js 2019 2025     a range, merged into the file (other seasons kept)
+    node tools/history.js               2014 to the season before the one in play
+    node tools/history.js 2019 2025     a range, merged into the file (other seasons kept)
 
    Regular-season weeks 1 to 16 and the whole postseason of each season, every game with
    an FBS team in it. Scores only: ESPN carries no odds for a finished game, so the

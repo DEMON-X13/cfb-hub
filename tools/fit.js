@@ -1,6 +1,6 @@
-/* Choose the model's parameters on the history and write cfb/data/model.json.
+/* Choose the model's parameters on the history and write data/model.json.
 
-    node cfb/tools/fit.js
+    node tools/fit.js
 
    A grid over K, the preseason carry, home field, the FCS base rating (what a school
    from the lower division starts at, since the history barely sees it play) and the
@@ -69,4 +69,4 @@ fs.writeFileSync(path.join(DATA, 'model.json'), JSON.stringify({
     holdoutLogloss: +hold.ll.toFixed(4), holdoutAccuracy: +hold.acc.toFixed(4), holdoutGames: hold.n,
     spreadMae: +mae(fitRows).toFixed(2), holdoutSpreadMae: +mae(holdRows).toFixed(2), holdoutHomeBeatsSpread: +beat.toFixed(3) },
 }, null, 1));
-console.log('wrote cfb/data/model.json');
+console.log('wrote data/model.json');

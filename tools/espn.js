@@ -24,7 +24,7 @@ const CONFS = 'https://site.api.espn.com/apis/site/v2/sports/football/college-fo
 /* from GitHub's servers ESPN refuses a browser-like UA but accepts a plain one, the same
    finding news/tools/pull-week.js made; a plain header set goes first */
 const HEADER_SETS = [
-  { 'User-Agent': 'nfl-hub-cfb/1.0 (+https://github.com/DEMON-X13/nfl-hub)', Accept: 'application/json' },
+  { 'User-Agent': 'cfb-hub/1.0 (+https://github.com/DEMON-X13/cfb-hub)', Accept: 'application/json' },
   {},
 ];
 

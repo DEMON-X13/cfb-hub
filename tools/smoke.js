@@ -1,7 +1,7 @@
-/* Boot cfb/index.html in jsdom against the published cfb/state.json and news.json, walk every
+/* Boot index.html in jsdom against the published state.json and news.json, walk every
    tab, then hold the state to what it was built from.
 
-    node cfb/tools/smoke.js        (from the hub root or from cfb/tools)
+    node tools/smoke.js        (from the repo root or from tools/)
 
    Must end "0 failures". Checks are against the page's invariants and against reality (the
    clock, the schedule, the injury report the news was written from, the last publish), never
@@ -14,7 +14,7 @@
    not set is dated midnight Eastern by ESPN, which is the evening before out west.
 
    The files: CFB_STATE and CFB_NEWS (default the published ones); the last publish, for the
-   frozen-call checks, is CFB_PREV_STATE or else `git show HEAD:cfb/state.json` (in the job,
+   frozen-call checks, is CFB_PREV_STATE or else `git show HEAD:state.json` (in the job,
    the commit the run started from). A state or news file older than the job that writes
    schema 2 skips the checks on what only the new job writes, and says so; CFB_SMOKE_STRICT=1
    (the workflow sets it) fails them instead. */
@@ -57,7 +57,7 @@ const HOLD_MS = 24 * 3600e3;          // a line ESPN left out, read within this 
 async function boot({ state = STATE, news = NEWS, nowMs = RUN_MS, espn = [], store = null } = {}) {
   const errors = [];
   const dom = new JSDOM(HTML.replace(/<link[^>]*fonts[^>]*>/g, ''), {
-    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/cfb/',
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/',
     beforeParse(w) {
       const RD = w.Date;
       class FD extends RD { constructor(...a) { if (a.length) super(...a); else super(nowMs); } static now() { return nowMs; } }
@@ -505,7 +505,7 @@ function prevChecks() {
   try {
     if (process.env.CFB_PREV_STATE === 'none') return;          // a first run: nothing published before it
     prev = process.env.CFB_PREV_STATE ? JSON.parse(fs.readFileSync(process.env.CFB_PREV_STATE, 'utf8'))
-      : JSON.parse(execFileSync('git', ['show', 'HEAD:cfb/state.json'], { cwd: ROOT, maxBuffer: 1 << 28 }).toString());
+      : JSON.parse(execFileSync('git', ['show', 'HEAD:state.json'], { cwd: ROOT, maxBuffer: 1 << 28 }).toString());
   } catch (e) { skip(`the last publish could not be read (${e.message.split('\n')[0]})`); return; }
   if (prev.season !== S.season) return;
   const now = new Map(S.games.map(g => [g.id, g]));
