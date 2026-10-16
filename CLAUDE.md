@@ -1,6 +1,6 @@
 # Working in this repo
 
-X College Football Bets: one static site, served by GitHub Pages from the repo root, on a rating
+CFB Hub (called X College Football Bets until 16 October 2026): one static site, served by GitHub Pages from the repo root, on a rating
 model's call on every FBS game. `docs/ARCHITECTURE.md` is the deeper map. This file is the part
 you need every time.
 

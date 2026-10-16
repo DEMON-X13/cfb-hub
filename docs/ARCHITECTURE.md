@@ -8,7 +8,7 @@ to its own repository in October 2026 with its history; the old address redirect
 
 ## The map
 
-This repo (X College Football Bets) is the NFL betting model's idea applied to college
+This repo (CFB Hub, X College Football Bets until 16 October 2026) is the NFL betting model's idea applied to college
 football, as a separate site so it can be tried without touching the others:
 moneylines and spreads only, no player props. Everything is ESPN's public feeds, free.
 

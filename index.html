@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>X College Football Bets</title>
+<title>CFB Hub</title>
 <meta name="description" content="A rating model's call on every FBS game, the polls beside it, the playoff picture and a moneyline and spread parlay builder.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -53,7 +53,7 @@ a{color:var(--ice)}
 header{padding:26px 22px 0;max-width:1240px;margin:0 auto;position:relative}
 /* the wordmark across the top; under it the tagline, and the stamp at the right, bottom-aligned with it */
 .brow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 24px;flex-wrap:wrap}
-.wordmark{font-family:var(--display);font-weight:900;font-size:clamp(34px,4.2vw,54px);letter-spacing:-.02em;line-height:.98;margin:0;text-transform:uppercase}
+.wordmark{font-family:var(--display);font-weight:900;font-size:clamp(34px,6vw,54px);letter-spacing:-.02em;line-height:.98;margin:0;text-transform:uppercase}
 .wordmark em{font-style:normal;color:var(--hot)}
 .wordmark .nw{white-space:nowrap}
 /* the football: the NBA Hub's ball turned on its side, leather with one white lace */
@@ -354,7 +354,6 @@ td.empty{white-space:normal;color:var(--ink-2);text-align:center;padding:28px 20
 
 @media (max-width:640px){.bracket{grid-template-columns:1fr}.games{grid-template-columns:1fr}.duo{grid-template-columns:1fr}.slate{grid-template-columns:1fr}}
 @media (max-width:620px){
-  .wordmark{font-size:min(30px,7.6vw)} .wordmark .l1{display:block}
   .wordmark .ball::before{display:none}
   h2 small{display:block;margin:4px 0 0}
   #stakeRow label{flex:1 0 100%}
@@ -382,7 +381,7 @@ td.empty{white-space:normal;color:var(--ink-2);text-align:center;padding:28px 20
 <div class="field" aria-hidden="true"></div>
 <header>
   <div class="brand">
-    <h1 class="wordmark"><span class="l1">X College</span> Football <span class="nw"><em>Bets</em><span class="ball" aria-hidden="true"></span></span></h1>
+    <h1 class="wordmark">CFB <span class="nw"><em>Hub</em><span class="ball" aria-hidden="true"></span></span></h1>
     <div class="brow">
       <p class="tagline">A rating model's call on every FBS game, the polls beside it, the playoff picture and a moneyline and spread parlay builder.</p>
       <div class="stamp"><div id="stamp">Loading…</div><div class="bl"><span id="pubTag"></span><span id="buildTag"></span></div></div>
@@ -504,7 +503,7 @@ td.empty{white-space:normal;color:var(--ink-2);text-align:center;padding:28px 20
 <div class="ov" id="ov"><div class="ovbox" id="ovbox" role="dialog" aria-modal="true" aria-labelledby="ovtitle"></div></div>
 <script>
 'use strict';
-const APP_BUILD = 'cfb v13 · 2026-10-16';
+const APP_BUILD = 'cfb v14 · 2026-10-16';
 const STATE_URL = 'state.json';
 const ESPN_SB = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard';
 const KEY = 'cfb_v1';
