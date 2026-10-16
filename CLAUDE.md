@@ -30,7 +30,14 @@ the steps:
 | `tools/` | the job (`update.js`), the news (`news.js`), the model (`elo.js`), the feeds (`espn.js`), the season (`season.js`), the gates (`smoke.js`, `simulate.js`, `fixtures.js`) |
 
 The site began as `cfb/` inside the NFL Hub (DEMON-X13/nfl-hub) and moved here in October 2026
-with its history. Nothing is shared with the NFL sites but the look.
+with its history. Nothing is shared with the NFL sites. The page wears the NBA Hub's look
+(DEMON-X13/nba-hub, as X NHL Bets does): dark only, its slate canvas, Unbounded and Manrope, the
+uppercase wordmark (a football for its ball), pill tabs, cards with a hot orange left edge (grey once
+final; never a team colour), lime for a right call or an edge, rose for a miss, gold for poll ranks.
+Team colours show only beside a name, in the window's stat bars and legend, lifted to 3:1 on the
+window (`teamColors`); a game card's chance bar is in the page's own colours (the model's side hot, the
+other grey), never the teams'. A news broadcast that is only digits (an ESPN id, not a network) is left
+off a tile and the window (`tvName`); logos are ESPN's dark-background ones (`/500-dark/`), the usual one if that fails.
 
 ## Source vs generated
 
