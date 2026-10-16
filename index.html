@@ -5,181 +5,391 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>X College Football Bets</title>
 <meta name="description" content="A rating model's call on every FBS game, the polls beside it, the playoff picture and a moneyline and spread parlay builder.">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#2A3043">
 <style>
 :root{
-  --bg:#F6F5F2; --panel:#FFFFFF; --panel-2:#FAF9F6; --panel-3:#F1EFEA;
-  --ink:#26241F; --ink-2:#6B655C; --muted:#A39D93; --line:#E9E6E0; --line-2:#DAD5CC;
-  --pick:#2E7D5B; --pick-soft:#E4F1EA; --gold:#B07D2B; --gold-soft:#F6EEDC;
-  --miss:#C0503A; --miss-soft:#FAE9E5; --blue:#3A6390; --blue-soft:#E7EEF6;
-  --r-lg:14px; --r-md:10px; --r-sm:8px;
-  --sh-sm:0 1px 2px rgba(38,36,31,.04);
-  --sh-md:0 1px 2px rgba(38,36,31,.05),0 10px 30px -14px rgba(38,36,31,.22);
-  --display:"Space Grotesk","Manrope",sans-serif;
-  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* the NBA Hub's look (DEMON-X13/nba-hub): its slate canvas, panels and inks exactly, hot orange the accent,
+     lime for a call that is right or an edge, rose for a miss, ice for links, gold for poll ranks and a push.
+     Dark only, as the NBA Hub is. The text tokens are X NHL Bets' (the same port): the NBA's --muted holds
+     4.5:1 only on --bg and --bg-2, so quiet text on a panel is --muted-ink; text straight on the page, where the
+     fixed glow lifts the backdrop, is --ink-2; rose text is --rose-ink and ice text on its tint --ice-2; the
+     dark text on a bright fill is #1E2230, never var(--bg); small orange text on a panel is --hot-ink, since
+     --hot-2 gives 4.14 on --panel-2 */
+  color-scheme:dark;
+  --bg:#2A3043; --bg-2:#30374B; --panel:#363D52; --panel-2:#3D455B; --panel-3:#475068;
+  --ink:#F6F7FB; --ink-2:#CDD2DF; --muted:#A0A7BB; --line:#4A5269; --line-2:#59627B;
+  --hot:#FF6A1F; --hot-2:#FF8C4A; --hot-soft:rgba(255,106,31,.14);
+  --lime:#CDFF4F; --lime-soft:rgba(205,255,79,.14);
+  --ice:#5FD4FF; --ice-2:#8EE3FF; --ice-soft:rgba(95,212,255,.14);
+  --rose:#FF3D6B; --rose-soft:rgba(255,61,107,.14);
+  --gold:#FFD166; --gold-soft:rgba(255,209,102,.14);
+  --muted-ink:#B3B9CB; --rose-ink:#FFA2B8; --hot-ink:#FFA875;
+  /* the page's own names for the roles, kept so its scripts read the same */
+  --pick:var(--lime); --pick-soft:var(--lime-soft); --miss:var(--rose); --miss-soft:var(--rose-soft); --blue:var(--ice);
+  --display:"Unbounded",ui-sans-serif,system-ui,sans-serif;
+  --body:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:18px; --r-sm:11px; --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.003em}
-a{color:var(--blue)}
-header{position:sticky;top:0;z-index:40;background:rgba(246,245,242,.88);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border-bottom:1px solid var(--line);padding:11px 16px 0}
-.hdr{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
-.hdr h1{font-family:var(--display);font-size:15.5px;font-weight:700;margin:0;letter-spacing:-.02em;color:var(--ink);display:flex;align-items:center;gap:8px}
-.hdr h1:before{content:'';width:7px;height:18px;border-radius:2px;background:var(--ink);display:inline-block}
-.hdr .stamp{color:var(--muted);font-size:12.5px;font-weight:600}
-.hdr .stamp b{font-family:var(--display);font-size:13px;color:var(--ink);background:var(--panel);box-shadow:var(--sh-sm);padding:4px 10px;border-radius:8px;font-weight:700}
-nav.tabs{max-width:1100px;margin:6px auto 0;display:flex;gap:2px;overflow-x:auto}
-nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:7px 11px;font:700 13px var(--display);letter-spacing:-.01em;color:var(--muted);cursor:pointer;white-space:nowrap}
-nav.tabs button:hover{color:var(--ink-2)}
-nav.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
-nav.tabs .tag{background:var(--ink);color:#fff;border-color:transparent}
-main{max-width:1100px;margin:0 auto;padding:16px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14.5px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(900px 520px at 12% -8%,rgba(255,106,31,.18),transparent 60%),
+  radial-gradient(700px 420px at 92% 0%,rgba(95,212,255,.10),transparent 60%),
+  linear-gradient(180deg,#333A4F 0%,var(--bg) 40%);background-attachment:fixed;min-height:100vh}
+::selection{background:var(--hot);color:#000}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--ice)}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+::placeholder{color:var(--ink-2);opacity:1}
+/* field lines: the NBA Hub's court grid, faint, in a soft ellipse at the top */
+.field{position:fixed;inset:0;pointer-events:none;opacity:.06;background-image:
+  linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px);background-size:64px 64px;
+  mask-image:radial-gradient(800px 500px at 50% 0%,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(800px 500px at 50% 0%,#000 20%,transparent 75%)}
+
+/* header: the wordmark, the tagline and the stamp, then the pill tabs */
+header{padding:26px 22px 0;max-width:1240px;margin:0 auto;position:relative}
+/* the wordmark across the top; under it the tagline, and the stamp at the right, bottom-aligned with it */
+.brow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 24px;flex-wrap:wrap}
+.wordmark{font-family:var(--display);font-weight:900;font-size:clamp(34px,4.2vw,54px);letter-spacing:-.02em;line-height:.98;margin:0;text-transform:uppercase}
+.wordmark em{font-style:normal;color:var(--hot)}
+.wordmark .nw{white-space:nowrap}
+/* the football: the NBA Hub's ball turned on its side, leather with one white lace */
+.wordmark .ball{display:inline-block;width:.62em;height:.38em;border-radius:50%;background:radial-gradient(ellipse at 38% 30%,#E8A06A,#B0561F 58%,#6B2C0A);box-shadow:0 0 22px rgba(255,106,31,.5);margin-left:.16em;vertical-align:.1em;position:relative}
+.wordmark .ball::after{content:"";position:absolute;left:30%;right:30%;top:50%;height:.06em;min-height:2px;transform:translateY(-50%);border-radius:2px;background:#FFF;box-shadow:0 0 0 0 transparent}
+.wordmark .ball::before{content:"";position:absolute;left:34%;right:34%;top:34%;bottom:34%;background:repeating-linear-gradient(90deg,#FFF 0 1.5px,transparent 1.5px 25%)}
+.tagline{color:var(--ink-2);font-size:13px;margin:8px 0 0;max-width:560px}
+.stamp{font-size:12px;color:var(--ink-2);text-align:right;line-height:1.5;max-width:470px}
+@media (max-width:1100px){.stamp{text-align:left;max-width:560px}}
+#stamp b{color:var(--ink);font-weight:700;display:block;font-size:12.5px}
+#stamp span{display:block}
+.stamp .bl{font-size:11px;color:var(--ink-2);margin-top:1px}
+nav.tabs{display:flex;gap:6px;margin:22px -4px 0;overflow-x:auto;padding:4px 4px 10px;scrollbar-width:none;scroll-padding-inline:8px}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:none;background:var(--panel);border:1px solid var(--line);color:var(--ink-2);padding:10px 16px;min-height:44px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.02em;cursor:pointer;white-space:nowrap;transition:all .18s var(--ease)}
+nav.tabs button:hover{color:var(--ink);border-color:var(--line-2);transform:translateY(-1px)}
+nav.tabs button.on{background:var(--ink);color:#1E2230;border-color:var(--ink)}
+nav.tabs .tag{display:inline-block;margin-left:3px;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--hot);color:#1E2230;font-weight:800;border:0;letter-spacing:0}
+.notes{max-width:1240px;margin:0 auto;padding:12px 22px 0}
+.notes p{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--hot);border-radius:12px;padding:10px 16px;margin:0 0 8px;color:var(--ink-2);font-size:13px;line-height:1.5}
+
+/* layout and headings */
+main{max-width:1240px;margin:0 auto;padding:18px 22px 90px}
 section[hidden]{display:none}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-sm);padding:14px 16px;margin-bottom:12px}
-.card h2{font-family:var(--display);font-size:17px;margin:0 0 8px;letter-spacing:-.01em}
-.card h3{font-family:var(--display);font-size:14px;margin:12px 0 6px;color:var(--ink-2)}
-.muted{color:var(--muted)} .small{font-size:12px}
+h2{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em;margin:0 0 12px}
+h3{font-family:var(--display);font-weight:700;font-size:15px;margin:22px 0 10px}
+.card{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+.card h2{margin:0 0 12px}
+.muted{color:var(--muted-ink)} .small{font-size:12px}
+main>section>.toolbar .muted{color:var(--ink-2)}
 .row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-select,input[type=number],input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--panel)}
-.btn{font:700 12.5px var(--display);padding:7px 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--panel);color:var(--ink);cursor:pointer}
-.btn:hover{background:var(--panel-2)}
-.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
-.btn.quiet{border-color:transparent;color:var(--ink-2)}
-.btn.tiny{padding:3px 8px;font-size:12px}
-.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden}
-.seg button{border:0;background:var(--panel);padding:6px 10px;font:600 13px var(--display);color:var(--ink-2);cursor:pointer}
-.seg button.on{background:var(--ink);color:#fff}
-.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
-.game{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;box-shadow:var(--sh-sm);display:flex;flex-direction:column;gap:8px}
-.game .when{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
-.game .when .live{color:var(--miss);font-weight:600}
-.side{display:grid;grid-template-columns:28px 1fr auto auto;gap:8px;align-items:center}
-.side img{width:28px;height:28px;object-fit:contain}
-.side .nm{font-weight:600;font-family:var(--display)} .side .nm small{color:var(--muted);font-weight:500;margin-left:4px}
-.side .rk{color:var(--gold);font-weight:700;font-size:12px;margin-right:3px}
-.side .sc{font-family:var(--display);font-weight:700;font-size:18px;min-width:28px;text-align:right}
-.side .wp{font-variant-numeric:tabular-nums;font-weight:600;min-width:46px;text-align:right}
-.side.picked .wp{color:var(--pick)}
-.side.won .nm{color:var(--pick)}
-.lines{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:13px;border-top:1px solid var(--line);padding-top:8px}
-.lines .k{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em}
-.lines .v{font-variant-numeric:tabular-nums}
-.tag{display:inline-block;font:600 11px var(--display);padding:2px 8px;border-radius:999px;background:var(--panel-2);color:var(--ink-2);border:1px solid var(--line)}
-.tag.pick{background:var(--pick-soft);color:var(--pick);border-color:transparent}
-.tag.pass{background:var(--panel-2);color:var(--muted)}
-.tag.win{background:var(--pick-soft);color:var(--pick);border-color:transparent}
-.tag.loss{background:var(--miss-soft);color:var(--miss);border-color:transparent}
-.tag.push{background:var(--gold-soft);color:#8A6412;border-color:transparent}
-.tag.replay{background:var(--blue-soft);color:var(--blue);border-color:transparent}
-.tag.out{background:var(--miss-soft);color:var(--miss);border-color:transparent}
-.game .when .started{color:var(--gold);font-weight:600}
-.lines .v small{color:var(--muted);font-size:11px;margin-left:4px}
-.notes{max-width:1100px;margin:0 auto;padding:8px 16px 0;font-size:12.5px;color:var(--ink-2)}
-.notes p{margin:0 0 4px;padding:6px 10px;background:var(--gold-soft);border-radius:var(--r-sm)}
-.bracket .seedline.out span:not(.seed){text-decoration:line-through;color:var(--muted)}
-.bracket .champ{font-size:11px;color:var(--pick);font-weight:700}
-.slot .when .kick{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--gold-soft);color:#8A6412;letter-spacing:.08em}
-.legbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.legbtns .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
-.linesTable td{padding:5px 6px;white-space:normal} .linesTable .btn{margin:1px 2px;white-space:nowrap}
-.legbtns .btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font:700 10.5px var(--display);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);position:sticky;top:0;background:var(--panel)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.card p.small{line-height:1.55}
+/* a block straight on the canvas: the heading, its note and the table, no panel round them */
+.block{margin:0 0 30px}
+.block>p.small,.block>p.muted,.block>.toolbar .muted,.block>.row .muted{color:var(--ink-2)}
+.block>p.small{line-height:1.55;max-width:860px;margin:0 0 12px}
+h2 small{font-family:var(--body);font-weight:500;color:var(--ink-2);font-size:13px;margin-left:10px;letter-spacing:0}
+
+/* controls */
+select,input[type=number],input[type=text]{font:inherit;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:9px 12px;color:var(--ink);min-width:0;min-height:44px}
+input[type=number]{text-align:right}
+input[type=checkbox]{accent-color:var(--hot);width:16px;height:16px;vertical-align:-3px;margin:0 4px 0 0}
+label{color:var(--ink-2)}
+label.check{display:inline-flex;align-items:center;min-height:40px;cursor:pointer}
+.btn{background:var(--panel-3);border:1px solid var(--line-2);color:var(--ink);padding:8px 12px;min-height:40px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12.5px;transition:all .15s var(--ease)}
+.btn:hover{border-color:var(--ink-2);transform:translateY(-1px)}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+.btn.primary{background:var(--hot);border-color:var(--hot);color:#1E2230}
+.btn.primary:hover{background:var(--hot-2);border-color:var(--hot-2)}
+.btn.quiet{background:transparent;color:var(--ink-2)}
+.btn.quiet:hover{color:var(--ink)}
+.btn.tiny{padding:6px 10px;min-height:34px;font-size:12px;font-variant-numeric:tabular-nums}
+/* a bet in the parlay: the NBA Hub's chosen prop, filled orange */
+.btn.on{background:var(--hot);border-color:var(--hot);color:#1E2230}
+.btn.on:hover{background:var(--hot-2);border-color:var(--hot-2)}
+.seg{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line-2);border-radius:999px;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--ink-2);font-weight:700;font-size:12.5px;padding:7px 13px;min-height:36px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.seg button:not(.on):hover{color:var(--ink);background:var(--panel-3)}
+.seg button.on{background:var(--ink);color:#1E2230}
+.seg button:focus-visible{outline-offset:-3px}
+.seg button.on:focus-visible{outline-color:#1E2230}
+
+/* the weeks: the NBA Hub's day strip, a tile a week, scrolling sideways */
+.days{display:flex;gap:8px;overflow-x:auto;padding:4px 4px 14px;margin:0 -4px;scrollbar-width:none;scroll-padding-inline:36px}
+/* more weeks off an edge: that edge fades, so a cut tile reads as the strip going on */
+.days.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+.days.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px);mask-image:linear-gradient(90deg,transparent,#000 44px)}
+.days.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent)}
+.days::-webkit-scrollbar{display:none}
+.day{flex:none;min-width:86px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:left;transition:all .18s var(--ease)}
+.day:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.day:focus-visible{outline-color:var(--ink)}
+.day.on{border-color:var(--hot);background:linear-gradient(var(--hot-soft),var(--hot-soft)),var(--bg-2)}
+.day .dw{font-size:10.5px;color:var(--muted-ink);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.day .dn{font-family:var(--display);font-weight:700;font-size:20px;line-height:1.1;margin-top:2px}
+.day .dc{font-size:11px;color:var(--ink-2);margin-top:3px}
+.day.on .dc{color:var(--hot-ink)}
+#games .empty{grid-column:1/-1}
+/* #games names both the tab and the cards grid: the address's jump to it is held at the top, so the page opens at its wordmark */
+#games{scroll-margin-top:100vh}
+
+/* game cards: the NBA Hub's card, its orange edge (grey once final) */
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.game{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px 18px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:9px;transition:transform .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease)}
+.game:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:0 18px 40px -24px rgba(0,0,0,.6)}
+.game::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--hot),transparent)}
+.game.final::before,.game[data-placeholder]::before{background:linear-gradient(180deg,var(--muted),transparent)}
+.game .when{font-size:12px;color:var(--muted-ink);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px}
+.game .when>span:first-child{color:var(--ink-2);font-weight:600}
+/* the card's status, the NBA Hub's tags on the right of the top row */
+.game .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.game .tags .tag.long{white-space:normal;text-transform:none;letter-spacing:0;font-size:11.5px;font-weight:700;text-align:right;border-radius:10px}
+.side{display:grid;grid-template-columns:30px 1fr auto auto;gap:10px;align-items:center}
+.side img{width:30px;height:30px;object-fit:contain}
+.side img,.tw img,.slot .team img,.tb .tbhd img{filter:drop-shadow(0 0 1px rgba(255,255,255,.55)) drop-shadow(0 0 3px rgba(255,255,255,.12))}
+/* at 20px a maroon or brown dark-background logo still reads faintly on the pill: a firmer halo */
+.slot .team img{filter:drop-shadow(0 0 1.5px rgba(255,255,255,.8)) drop-shadow(0 0 3px rgba(255,255,255,.18))}
+.side .nm{font-weight:800;font-size:15px;min-width:0;overflow-wrap:anywhere}
+.side .nm small{color:var(--muted-ink);font-weight:600;font-size:12px;margin-left:6px;white-space:nowrap;display:inline-block}
+.side .rk{color:var(--gold);font-family:var(--display);font-weight:700;font-size:11.5px;margin-right:5px}
+.side .sc{font-family:var(--display);font-weight:700;font-size:22px;min-width:30px;text-align:right;line-height:1}
+.side .wp{font-family:var(--display);font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;min-width:50px;text-align:right;color:var(--ink-2)}
+.side.picked .wp{color:var(--lime)}
+.side.won .nm{color:var(--lime)}
+/* once final, lime is the winner's alone: the call is graded in its tag */
+.game.final .side.picked .wp{color:var(--ink-2)}
+/* the chance bar, the NBA Hub's .prob (away from the left, home from the right), in the page's own colours, never
+   the teams' (team colours on a card were too clashy): the model's side in the hot accent, the other in grey */
+.prob{height:8px;border-radius:999px;background:var(--panel-3);overflow:hidden;display:flex;margin:2px 0 1px}
+.prob i{display:block;height:100%;background:var(--line-2);transition:width .5s var(--ease)}
+.prob i.h{margin-left:auto}
+.prob i.pk{background:var(--hot)}
+.game.final .side:not(.won) .sc{color:var(--muted-ink)}
+/* a finished game sinks, as a finished CFB News tile does: flat and darker, its loser greyed, its chance bar quiet */
+.game.final{background:#262B3C;box-shadow:inset 0 2px 12px rgba(0,0,0,.35)}
+.game.final:hover{box-shadow:inset 0 2px 12px rgba(0,0,0,.35),0 18px 40px -24px rgba(0,0,0,.6)}
+.game.final .side:not(.won) .nm{color:var(--muted-ink)}
+.game.final .prob{opacity:.45}
+.lines{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;font-size:13px;border-top:1px solid var(--line);padding-top:10px;margin-top:2px}
+.lines .k{color:var(--muted-ink);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.lines .v{font:700 13px/1.45 var(--body);font-variant-numeric:tabular-nums;color:var(--ink)}
+.lines .v .tag,.lines .v small,.lines .v .muted{font-family:var(--body);letter-spacing:normal}
+.lines .v .nw{white-space:nowrap}
+@media (max-width:420px){.lines>div:nth-child(3){grid-column:1/-1}}
+.lines .v .tag{letter-spacing:.08em}.lines .v .tag.pick,.lines .v .tag.pass{letter-spacing:.01em}
+.lines .v small{color:var(--muted-ink);font-size:11px;margin-left:4px;font-weight:500}
+.legbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.legbtns .k{color:var(--muted-ink);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+
+/* tags: the NBA Hub's soft capsules, the hue at .14 over the panel */
+.tag{display:inline-block;font-weight:800;font-size:10.5px;line-height:1.4;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--panel-3);color:var(--ink);border:0;white-space:nowrap}
+.tag.pick,.tag.win{background:var(--lime-soft);color:var(--lime)}
+.tag.pick{text-transform:none;letter-spacing:.01em;font-size:11.5px}
+.tag.pass{background:none;padding:0;color:var(--muted-ink);white-space:normal;text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:600;border-radius:0}
+.tag.live{background:var(--rose-soft);color:var(--rose-ink)}
+.tag.fin{background:var(--ink);color:#1E2230}
+.tag.started{background:var(--gold-soft);color:var(--gold)}
+.tag.loss,.tag.out{background:var(--rose-soft);color:var(--rose-ink)}
+.tag.push{background:var(--gold-soft);color:var(--gold)}
+.tag.replay{background:var(--ice-soft);color:var(--ice-2)}
+
+/* tables: the NBA Hub's, hairline rows on the panel, the head on --panel-2 */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+th{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-ink);position:sticky;top:0;z-index:1;background:var(--panel-2)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
-tr.major td{font-weight:500}
-.tw{display:inline-flex;align-items:center;gap:6px}
-.tw img{width:20px;height:20px;object-fit:contain}
-.tw .rk{color:var(--gold);font-weight:700;font-size:11px}
-.scroll{overflow:auto;max-height:70vh}
-.bracket{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.bracket .bye,.bracket .fr{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-md);padding:10px}
-.bracket .seedline{display:flex;align-items:center;gap:8px;padding:4px 0}
-.bracket .seed{font:700 12px var(--display);color:var(--muted);width:20px}
-.bracket .auto{font-size:11px;color:var(--gold);font-weight:600}
-.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;min-width:60px}
-.bar i{display:block;height:100%;background:var(--pick)}
-.legs{display:flex;flex-direction:column;gap:6px}
-.leg{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:8px 10px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);font-size:13.5px}
-.leg .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px}
-.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
-.stat{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-md);padding:10px}
-.stat .k{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
-.stat .v{font:700 20px var(--display)}
-.stat .v.good{color:var(--pick)} .stat .v.bad{color:var(--miss)}
-.saved{border:1px solid var(--line);border-radius:var(--r-md);padding:10px;margin-bottom:8px}
+td b{font-family:var(--display);font-weight:700;font-size:13px}
+tr.major td{font-weight:600}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:
+  linear-gradient(90deg,var(--panel) 30%,rgba(54,61,82,0)) left/40px 100% no-repeat local,
+  linear-gradient(270deg,var(--panel) 30%,rgba(54,61,82,0)) right/40px 100% no-repeat local,
+  radial-gradient(farthest-side at 0 50%,rgba(0,0,0,.45),transparent) left/14px 100% no-repeat scroll,
+  radial-gradient(farthest-side at 100% 50%,rgba(0,0,0,.45),transparent) right/14px 100% no-repeat scroll,
+  var(--panel)}
+.scroll th{position:static}
+/* the NBA Hub's rank column: muted, narrow, at the left; a rise lime, a fall rose */
+td.rk,th.rk{color:var(--muted-ink);text-align:left;width:30px;font-variant-numeric:tabular-nums}
+td.mv{color:var(--muted-ink);font-variant-numeric:tabular-nums;width:44px} td.mv .up{color:var(--lime)} td.mv .dn{color:var(--rose-ink)}
+/* the team column stays put while a wide table scrolls sideways */
+#poTable td:first-child,#poTable th:first-child,#plLines td:first-child,#plLines th:first-child{position:sticky;left:0;z-index:1;background:var(--panel)}
+#poTable th:first-child,#plLines th:first-child{background:var(--panel-2)}
+#poTable tbody tr:hover td:first-child,#plLines tbody tr:hover td:first-child{background:linear-gradient(rgba(255,255,255,.025),rgba(255,255,255,.025)),var(--panel)}
+/* a short table: scrolls sideways inside its own box on a phone, never the page */
+.tw{display:inline-flex;align-items:center;gap:7px;vertical-align:middle}
+.matchup{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+/* the lines table: the two bets in a cell wrap, apart */
+.linesTable td{white-space:normal;padding:8px 10px}
+.linesTable .btn{margin:3px 4px 3px 0;white-space:nowrap}
+.tw img{width:22px;height:22px;object-fit:contain}
+.tw .rk{color:var(--gold);font-family:var(--display);font-weight:700;font-size:11px}
+td.empty{white-space:normal;color:var(--ink-2);text-align:center;padding:28px 20px}
+#standings details{border-top:1px solid var(--line);padding:4px 0}
+#standings details:first-child{border-top:0}
+#standings summary{cursor:pointer;padding:10px 2px;list-style:none;display:flex;align-items:center;gap:10px;min-height:44px}
+#standings summary::-webkit-details-marker{display:none}
+#standings summary::before{content:"";width:0;height:0;border-left:6px solid var(--hot);border-top:5px solid transparent;border-bottom:5px solid transparent;transition:transform .15s var(--ease)}
+#standings details[open] summary::before{transform:rotate(90deg)}
+#standings summary b{font-family:var(--display);font-weight:700;font-size:14px}
+#standings details .scroll{margin:2px 0 12px}
+
+/* playoff */
+.bracket{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.bracket .bye,.bracket .fr{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.bracket h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.bracket .seedline{display:flex;align-items:center;gap:8px;padding:5px 0;flex-wrap:wrap}
+.bracket .seed{font:700 12px var(--display);color:var(--muted-ink);width:22px}
+.bracket .auto{font-size:11px;color:var(--gold);font-weight:700}
+.bracket .seedline.out span:not(.seed):not(.tag){text-decoration:line-through;color:var(--muted-ink)}
+.bracket .seedline.out span.tag.out{text-decoration:none;color:var(--rose-ink)}
+.bracket .champ{font-size:11px;color:var(--lime);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.bar{height:6px;background:var(--panel-3);border-radius:999px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--hot),var(--lime))}
+
+/* parlays: the legs on a darker well, the totals as the NBA Hub's stat tiles */
+.legs{display:flex;flex-direction:column;max-width:760px}
+.legs.ticket{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);padding:4px 22px;position:relative}
+.legs.ticket::before,.legs.ticket::after{content:"";position:absolute;width:22px;height:22px;border-radius:50%;background:var(--panel);border:1px solid var(--line);top:50%;transform:translateY(-50%)}
+.legs.ticket::before{left:-12px;clip-path:inset(0 0 0 50%)} .legs.ticket::after{right:-12px;clip-path:inset(0 50% 0 0)}
+.leg{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line-2);font-size:13.5px;font-weight:600}
+.leg:last-child{border-bottom:0}
+.leg .n{font-family:var(--display);font-weight:700;font-size:13px}
+.leg .x{background:transparent;border:0;color:var(--muted-ink);cursor:pointer;font-size:20px;line-height:1;width:44px;height:44px;border-radius:10px}
+.leg .x:hover{color:var(--rose);background:var(--rose-soft)}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0 16px}
+.stat{--sb:var(--panel);background:radial-gradient(45px circle at calc(100% - 15px) 15px,rgba(255,106,31,.22),transparent 70%),var(--sb);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.card .stat{--sb:var(--bg-2)}
+/* the NBA Hub's tile: the number first, its caption under it */
+.stat .v{font-family:var(--display);font-weight:900;font-size:clamp(22px,2.3vw,30px);line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat .k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-ink);margin-top:7px}
+.stat .v.good{color:var(--lime)} .stat .v.bad{color:var(--rose-ink)}
+.saved{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
 .saved .top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
-.empty{color:var(--muted);padding:20px;text-align:center}
-.slate{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:10px}
-.slot{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px 10px;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;transition:border-color .15s,transform .15s,box-shadow .15s}
-.slot:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:var(--sh-md)}
-.slot:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.slot .when{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.slot .vs{font:700 17px var(--display);letter-spacing:-.02em;margin:5px 0 4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.slot .vs i,.ovhd i{display:inline-block;width:4px;height:15px;border-radius:1px;flex:0 0 4px}
-.slot .team{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;border:1px solid var(--line);border-radius:999px;background:var(--panel-2);font:700 13.5px var(--display);letter-spacing:-.01em;color:var(--ink);line-height:1}
+.saved .top b{font-family:var(--display);font-weight:700;font-size:14px}
+.saved .small .tag{margin:0 2px 4px 0}
+.empty{background:var(--panel);border:1px dashed var(--line-2);border-radius:var(--r);padding:30px 22px;text-align:center;color:var(--ink-2)}
+.card .empty{background:var(--bg-2)}
+.empty b{display:block;font:700 22px var(--display);color:var(--ink);margin-bottom:6px;letter-spacing:-.01em}
+#stake{width:96px;margin-left:6px}
+#refreshScores{min-height:44px;padding:10px 16px;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+#refreshScores svg{flex:none} #refreshScores.busy svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#refreshScores.busy svg{animation:none}}
+
+/* CFB News: a tile a game, in the NBA Hub's card; a finished game sinks to the canvas */
+.slate{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.slot{text-align:left;background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:14px 16px 12px 18px;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:transform .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease)}
+.slot::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--hot),transparent)}
+.slot:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:0 18px 40px -24px rgba(0,0,0,.6)}
+.slot .when{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-ink);display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px}
+.slot .when .fin,.slot .when .liv,.slot .when .kick{display:inline-block;padding:2px 8px;border-radius:999px;letter-spacing:.08em;font-weight:800}
+.slot .when .fin{background:var(--ink);color:#1E2230}
+.slot .when .liv{background:var(--rose);color:#1E2230}
+.slot .when .kick{background:var(--gold-soft);color:var(--gold)}
+.slot .vs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:9px 0 6px}
+.slot .team{display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 5px;border:1px solid var(--line-2);border-radius:999px;background:rgba(255,255,255,.03);font-weight:800;font-size:13.5px;letter-spacing:.01em;color:var(--ink);line-height:1}
 .slot .team img{width:20px;height:20px;object-fit:contain}
-.slot .team .rk{color:var(--gold);font-size:11px}
-.slot .team.won{border-color:var(--pick);background:var(--pick-soft);color:var(--pick)}
-.slot .team.lost{color:var(--muted)}
-.slot.final{background:var(--panel-2)}
-.slot .when .fin{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--ink);color:#fff;letter-spacing:.08em}
-.slot .when .liv{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:var(--miss);color:#fff;letter-spacing:.08em}
-.slot .vs em{font:500 12.5px var(--body);color:var(--muted);font-style:normal}
-.slot .vs .rk{color:var(--gold);font-size:12px}
-.slot .vs .score{margin-left:auto;font-size:16px;font-variant-numeric:tabular-nums}
-.slot .meta{font-size:12px;color:var(--muted);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.slot .hook{font-size:12.5px;color:var(--ink-2);line-height:1.45;margin-top:7px;padding-top:7px;border-top:1px solid var(--line);flex:1 1 auto}
+.slot .team .rk{color:var(--gold);font-family:var(--display);font-weight:700;font-size:10.5px}
+.slot .team.won{border-color:var(--lime);background:var(--lime-soft);color:var(--lime)}
+.slot .team.lost{color:var(--muted);border-color:var(--line);background:transparent}
+.slot .team.lost img{filter:grayscale(1) brightness(1.35) drop-shadow(0 0 1px rgba(255,255,255,.4));opacity:.8}
+.slot .team.lost .rk{color:var(--muted)}
+.slot .vs em{font-size:12px;color:var(--muted-ink);font-style:normal;font-weight:600}
+.slot .vs .score{margin-left:auto;font-family:var(--display);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.slot .meta{font-size:12px;color:var(--muted-ink);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .hook{font-size:13px;color:var(--ink-2);line-height:1.5;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);flex:1 1 auto}
 .slot .hook small{font-size:11px}
-.slot .more{margin-top:8px;font:700 11px var(--display);letter-spacing:.04em;color:var(--muted);transition:color .15s}
+.slot .more{margin-top:10px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--hot-ink);transition:color .15s var(--ease)}
 .slot:hover .more{color:var(--ink)}
-.ov{position:fixed;inset:0;background:rgba(38,36,31,.45);display:none;z-index:50;overflow:auto;padding:24px 12px}
+.slot.final{background:#262B3C;border-color:var(--line);box-shadow:inset 0 2px 12px rgba(0,0,0,.35)}
+.slot.final::before{background:linear-gradient(180deg,var(--muted),transparent)}
+.slot.final .hook{color:var(--muted-ink)}
+.slot.final .more{color:var(--muted-ink)}
+#newsLabel{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.01em}
+#newsNote{margin-left:auto}
+
+/* the game window: the NBA Hub's sheet */
+.ov{position:fixed;inset:0;background:rgba(14,17,27,.66);display:none;z-index:50;overflow:hidden;padding:28px 16px}
 .ov.on{display:block}
-.ovbox{max-width:1000px;margin:0 auto;background:var(--panel);border-radius:var(--r-lg);box-shadow:0 20px 60px -20px rgba(38,36,31,.6)}
-.ovhd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.ovhd h3{font:700 20px var(--display);margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ovhd h3 em{font:500 13px var(--body);color:var(--muted);font-style:normal}
-.ovhd .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
-.ovhd .x{background:none;border:0;font-size:26px;line-height:1;color:var(--muted);cursor:pointer}
-.ovbody{padding:16px 18px}
-.ovnote{font-size:14.5px;color:var(--ink-2);margin:0 0 14px;line-height:1.55}
-.ovstory{margin:0 0 14px;padding:12px 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);font-size:14px;line-height:1.55;color:var(--ink-2)}
-.ovstory h5{font:700 10.5px var(--display);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 6px}
-.ovstory p{margin:0 0 8px} .ovstory p:last-child{margin:0} .ovstory .src{font-size:12px;color:var(--muted)}
+.ovbox{max-width:1000px;margin:0 auto;max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px);overflow-y:auto;overscroll-behavior:contain;background:var(--bg-2);border:1px solid var(--line-2);border-radius:var(--r);box-shadow:0 30px 80px -30px rgba(0,0,0,.8)}
+.ovhd{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px 14px;border-bottom:1px solid var(--line);background:var(--bg-2);border-radius:var(--r) var(--r) 0 0}
+.ovhd h3{font:700 19px var(--display);margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;letter-spacing:-.01em}
+.ovhd h3 em{font:600 13px var(--body);color:var(--muted);font-style:normal}
+.ovhd i{display:inline-block;width:4px;height:16px;border-radius:2px;flex:0 0 4px}
+.ovhd .sub{font-size:12.5px;color:var(--ink-2);margin-top:6px}
+.ovhd .x{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);font-size:22px;line-height:1;cursor:pointer}
+.ovhd .x:hover{border-color:var(--ink-2)}
+.ovbody{padding:16px 18px 22px}
+.ovnote{font-size:14.5px;color:var(--ink-2);margin:0 0 14px;line-height:1.6}
+.ovbody>.small.muted{color:var(--muted)}
+.ovstory{margin:0 0 16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--hot);border-radius:12px;font-size:14px;line-height:1.55;color:var(--ink-2)}
+.ovstory h5{font:700 15px/1.35 var(--display);color:var(--ink);margin:0 0 8px;letter-spacing:-.005em}
+.ovstory p{margin:0 0 8px} .ovstory p:last-child{margin:0} .ovstory .src{font-size:12px;color:var(--muted-ink)}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.tb{border:1px solid var(--line);border-radius:var(--r-md);padding:0 12px 12px;border-top:3px solid var(--tc);background:var(--panel)}
-.tb .tbhd{margin:0 -12px 8px;padding:10px 12px;border-bottom:1px solid var(--line)}
-.tb .tbhd{display:flex;align-items:center;gap:10px}
-.tb .tbhd img{width:36px;height:36px;object-fit:contain}
-.tb .tbhd h4{font:700 16px var(--display);margin:0}
-.tb .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
-.tb h5{font:700 10.5px var(--display);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:12px 0 4px}
-.tb ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.45}
+.tb{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:0 14px 12px}
+.tb .tbhd{display:flex;align-items:center;gap:12px;margin:0 -14px 8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.tb .tbhd img{width:38px;height:38px;object-fit:contain}
+.tb .tbhd h4{font:700 15px var(--display);margin:0;letter-spacing:-.01em}
+.tb .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tb h5{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-ink);margin:12px 0 6px}
+.tb ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.5;color:var(--ink-2)}
 .tb li{margin:0 0 6px}
+.tb li::marker{color:var(--hot)}
 .form{display:flex;gap:5px;flex-wrap:wrap}
-.form span{font:600 11px var(--display);padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--panel-2)}
-.form span.W{color:var(--pick);background:var(--pick-soft);border-color:transparent} .form span.L{color:var(--miss);background:var(--miss-soft);border-color:transparent}
-.ovsec{font:700 15px var(--display);margin:18px 0 6px} .ovsec small{font:500 12px var(--body);color:var(--muted);margin-left:8px}
-.ovlegend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:8px} .ovlegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
-.sbar{display:grid;grid-template-columns:56px 1fr 56px;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
-.sbar .sv{font:600 14px var(--display);font-variant-numeric:tabular-nums;color:var(--ink-2)} .sbar .sv:last-child{text-align:right}
-.sbar .sv.win{color:var(--pick)}
-.sbar .lb{display:block;font-size:12px;color:var(--muted);margin-bottom:3px} .sbar .lb small{margin-left:4px}
-.sbar .track{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--line)}
-.sbar .half{flex:1;position:relative} .sbar .half i{position:absolute;top:0;bottom:0} .sbar .half.l i{right:0} .sbar .half.r i{left:0}
+.form span{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--panel-3);color:var(--ink)}
+.form span.W{color:var(--lime);background:var(--lime-soft)} .form span.L{color:var(--rose-ink);background:var(--rose-soft)}
+.ovsec{font:700 15px var(--display);margin:22px 0 8px} .ovsec small{font:500 12px var(--body);color:var(--muted);margin-left:8px}
+.ovlegend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink-2);margin-bottom:8px} .ovlegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.sbar{display:grid;grid-template-columns:60px 1fr 60px;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.sbar:last-child{border-bottom:0}
+.sbar .sv{font:700 14px var(--display);font-variant-numeric:tabular-nums;color:var(--ink-2)} .sbar .sv:last-child{text-align:right}
+.sbar .sv.win{color:var(--lime)}
+.sbar .lb{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px;font-weight:600} .sbar .lb small{margin-left:5px;color:var(--muted);font-weight:500}
+.sbar .track{display:flex;height:8px;border-radius:999px;overflow:hidden;background:#232838}
+.sbar .half{flex:1;position:relative} .sbar .half i{position:absolute;top:0;bottom:0;transition:width .5s var(--ease)} .sbar .half.l i{right:0} .sbar .half.r i{left:0}
+
 @media (max-width:640px){.bracket{grid-template-columns:1fr}.games{grid-template-columns:1fr}.duo{grid-template-columns:1fr}.slate{grid-template-columns:1fr}}
+@media (max-width:620px){
+  .wordmark{font-size:min(30px,7.6vw)} .wordmark .l1{display:block}
+  .wordmark .ball::before{display:none}
+  h2 small{display:block;margin:4px 0 0}
+  #stakeRow label{flex:1 0 100%}
+  #plLines td:first-child{width:152px;min-width:152px;max-width:152px}
+  #plLines td:first-child .tw{max-width:100%;min-width:0}
+  #plLines td:first-child .tw>span:last-child{min-width:0;white-space:normal}
+  /* the tabs stay at the top once the brand has scrolled away */
+  header{position:sticky;top:calc(-1 * var(--nav-top,0px));z-index:20}
+  nav.tabs{margin:14px -22px 0;padding:4px 22px 10px;scroll-padding-inline:30px;transition:background-color .15s var(--ease)}
+  header.stuck nav.tabs{background:rgba(42,48,67,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line),0 10px 24px -14px rgba(0,0,0,.6)}
+  .stamp{text-align:left;max-width:none}
+  .card{padding:16px 14px}
+  .totals{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+  th,td{padding:8px 9px}
+  #newsNote{margin-left:0}
+  .btn,.btn.tiny,.seg button,select,input[type=number],input[type=text],label.check{min-height:44px}
+  .ov{padding:0} .ovbox{border-radius:0;border:0;height:100%;max-height:none}
+  .ovhd{padding:12px 16px 12px;border-radius:0} .ovhd h3{font-size:16px} .ovbody{padding:12px 16px 28px}
+  .sbar{grid-template-columns:52px 1fr 52px;gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
+<div class="field" aria-hidden="true"></div>
 <header>
-  <div class="hdr">
-    <h1>X College Football Bets</h1>
-    <span class="stamp" id="stamp">Loading…</span>
-    <span class="stamp" id="buildTag"></span>
+  <div class="brand">
+    <h1 class="wordmark"><span class="l1">X College</span> Football <span class="nw"><em>Bets</em><span class="ball" aria-hidden="true"></span></span></h1>
+    <div class="brow">
+      <p class="tagline">A rating model's call on every FBS game, the polls beside it, the playoff picture and a moneyline and spread parlay builder.</p>
+      <div class="stamp"><div id="stamp">Loading…</div><div class="bl"><span id="pubTag"></span><span id="buildTag"></span></div></div>
+    </div>
   </div>
-  <nav class="tabs" id="tabs">
-    <button data-tab="games" class="on">Games</button>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button data-tab="games" class="on" aria-current="page">Games</button>
     <button data-tab="news">CFB News</button>
     <button data-tab="rankings">Rankings</button>
     <button data-tab="ratings">Power Ratings</button>
@@ -191,60 +401,62 @@ tr.major td{font-weight:500}
 <div class="notes" id="runNotes" hidden></div>
 <main>
   <section id="tab-games">
+    <div class="days" id="weekDays" role="group" aria-label="Week"></div>
     <div class="toolbar">
-      <select id="weekSel"></select>
+      <select id="weekSel" hidden aria-hidden="true" tabindex="-1"></select>
       <div class="seg" id="scope">
         <button data-scope="major" class="on">Major schools</button>
         <button data-scope="ranked">Ranked</button>
         <button data-scope="all">All FBS</button>
       </div>
       <select id="confSel"><option value="">Every conference</option></select>
-      <button class="btn quiet" id="refreshScores" title="Read the scoreboard from ESPN now, in this browser. Free.">Refresh scores</button>
+      <button class="btn" id="refreshScores" title="Read the scoreboard from ESPN now, in this browser. Free."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg><span>Refresh scores</span></button>
       <span class="small muted" id="gamesNote"></span>
     </div>
     <div class="games" id="games"></div>
   </section>
 
   <section id="tab-news" hidden>
-    <div class="toolbar"><b id="newsLabel" style="font-family:var(--display)"></b><span class="small muted" id="newsDates"></span><span class="small muted" id="newsNote" style="margin-left:auto"></span></div>
+    <div class="toolbar"><b id="newsLabel"></b><span class="small muted" id="newsDates"></span><span class="small muted" id="newsNote"></span></div>
     <div class="slate" id="slate"></div>
   </section>
 
   <section id="tab-rankings" hidden>
-    <div class="card">
+    <div class="block">
       <h2>The polls and the model</h2>
       <p class="small muted" id="rankNote"></p>
       <div class="scroll"><table id="rankTable"></table></div>
     </div>
-    <div class="card">
-      <h2>Rated in the model's top 25, unranked by the AP</h2>
+    <div class="block">
+      <h2>Rated in the model's top 25 <small>unranked by the AP</small></h2>
       <div id="rankGap" class="row"></div>
     </div>
   </section>
 
   <section id="tab-ratings" hidden>
-    <div class="card">
+    <div class="block">
+      <h2>Power ratings <small>Elo, home field <b id="hfaNote"></b>, <b id="ppeNote"></b> per point of spread</small></h2>
       <div class="toolbar">
-        <h2 style="margin:0">Power ratings</h2>
         <select id="ratConf"><option value="">Every conference</option></select>
-        <label class="small"><input type="checkbox" id="ratMajor" checked> Major schools only</label>
-        <span class="small muted">Elo, home field <b id="hfaNote"></b>, <b id="ppeNote"></b> per point of spread.</span>
+        <label class="small check"><input type="checkbox" id="ratMajor" checked> Major schools only</label>
       </div>
       <div class="scroll"><table id="ratTable"></table></div>
     </div>
   </section>
 
   <section id="tab-playoff" hidden>
-    <div class="card">
+    <div class="block">
       <h2>If the season ended today</h2>
       <p class="small muted" id="bracketNote"></p>
       <div class="bracket" id="bracket"></div>
     </div>
-    <div class="card">
-      <div class="toolbar"><h2 style="margin:0">Playoff odds</h2><label class="small"><input type="checkbox" id="poMajor" checked> Major schools only</label><span class="small muted" id="poNote"></span></div>
+    <div class="block">
+      <h2>Playoff odds</h2>
+      <p class="small muted" id="poNote"></p>
+      <div class="toolbar"><label class="small check"><input type="checkbox" id="poMajor" checked> Major schools only</label></div>
       <div class="scroll"><table id="poTable"></table></div>
     </div>
-    <div class="card">
+    <div class="block">
       <h2>Conference standings</h2>
       <div id="standings"></div>
     </div>
@@ -257,43 +469,42 @@ tr.major td{font-weight:500}
       <p class="small muted" id="legsNote" hidden></p>
       <div class="legs" id="legs"></div>
       <div class="totals" id="parlayTotals"></div>
-      <div class="row">
+      <div class="row" id="stakeRow">
         <label>Stake $<input type="number" id="stake" value="10" min="1" step="1" style="width:80px"></label>
         <button class="btn primary" id="saveParlay">Save parlay</button>
         <button class="btn quiet" id="clearParlay">Clear</button>
       </div>
     </div>
-    <div class="card">
-      <div class="toolbar"><h2 style="margin:0">This week's lines</h2>
-        <div class="seg" id="plScope"><button data-scope="major" class="on">Major schools</button><button data-scope="ranked">Ranked</button><button data-scope="all">All FBS</button></div>
-        <span class="small muted" id="plNote"></span></div>
+    <div class="block">
+      <h2>This week's lines</h2>
+      <p class="small muted" id="plNote"></p>
+      <div class="toolbar"><div class="seg" id="plScope"><button data-scope="major" class="on">Major schools</button><button data-scope="ranked">Ranked</button><button data-scope="all">All FBS</button></div></div>
       <div class="scroll"><table class="linesTable" id="plLines"></table></div>
     </div>
-    <div class="card">
-      <h2>Saved parlays</h2>
-      <p class="small muted">Kept in this browser only. Graded from the scores the job publishes.</p>
+    <div class="block">
+      <h2>Saved parlays <small>kept in this browser only, graded from the scores the job publishes</small></h2>
       <div id="savedList"></div>
     </div>
   </section>
 
   <section id="tab-record" hidden>
-    <div class="card">
+    <div class="block">
       <h2>The model's record</h2>
       <p class="small muted" id="recordNote"></p>
       <div class="totals" id="recordTotals"></div>
       <h3>By week</h3>
-      <table id="recWeek"></table>
+      <div class="scroll x"><table id="recWeek"></table></div>
       <h3>By confidence</h3>
-      <table id="recBand"></table>
+      <div class="scroll x"><table id="recBand"></table></div>
       <h3>How it was fitted</h3>
       <p class="small muted" id="fitNote"></p>
     </div>
   </section>
 </main>
-<div class="ov" id="ov"><div class="ovbox" id="ovbox"></div></div>
+<div class="ov" id="ov"><div class="ovbox" id="ovbox" role="dialog" aria-modal="true" aria-labelledby="ovtitle"></div></div>
 <script>
 'use strict';
-const APP_BUILD = 'cfb v12 · 2026-10-10';
+const APP_BUILD = 'cfb v13 · 2026-10-16';
 const STATE_URL = 'state.json';
 const ESPN_SB = 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard';
 const KEY = 'cfb_v1';
@@ -347,21 +558,80 @@ function when(g) {
   if (tbdTime(g)) return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', timeZone: ET }) + ' · time TBA';
   return d.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
+/* ESPN's logo drawn for a dark background (/500-dark/, every team has one), the usual logo if it
+   does not load, nothing if neither does */
+const darkLogo = u => String(u || '').replace('/teamlogos/ncaa/500/', '/teamlogos/ncaa/500-dark/');
+function logoImg(t) { return t.logo ? `<img src="${esc(darkLogo(t.logo))}" data-light="${esc(t.logo)}" alt="" onerror="logoFail(this)">` : ''; }
+/* with neither logo, a pill or a table cell closes up; the card's and the window's keep their column */
+function logoFail(img) { const u = img.getAttribute('data-light'); if (u) { img.removeAttribute('data-light'); img.src = u; } else if (img.closest('.team, .tw')) img.style.display = 'none'; else img.style.visibility = 'hidden'; }
+/* a team's colour on the dark window: its own where it stands 3:1 off the background, else its
+   alternate where that does, else its own lightened until it does; two that look alike are told apart */
+const CANVAS = '#30374B';
+function lumOf(hex) { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return null; const v = [0, 2, 4].map(i => { const c = parseInt(m[1].slice(i, i + 2), 16) / 255; return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); }); return .2126 * v[0] + .7152 * v[1] + .0722 * v[2]; }
+function contrastOf(a, b) { const x = lumOf(a), y = lumOf(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
+const shows = c => lumOf(c) !== null && contrastOf(c, CANVAS) >= 3;
+function lightened(hex, target = 3) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return '#A0A7BB';
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16) / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0, s = 0; const l0 = (mx + mn) / 2;
+  if (d) { s = d / (1 - Math.abs(2 * l0 - 1)); h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+  for (let l = l0; l <= 1.0001; l += .02) {
+    const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), o = l - c / 2;
+    const [r1, g1, b1] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    const out = '#' + [r1, g1, b1].map(v => Math.round(Math.min(1, Math.max(0, v + o)) * 255).toString(16).padStart(2, '0')).join('');
+    if (lumOf(out) !== null && contrastOf(out, CANVAS) >= target) return out;
+  }
+  return '#CDD2DF';
+}
+/* a team's colours on the slate, best first: its own (lightened to show where it is dark), then the same
+   hue lighter still, then its alternate; a white, grey or black reads as nobody's, so it comes last */
+const chromaOf = hex => { const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '')); if (!m) return 0; const v = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16)); return (Math.max(...v) - Math.min(...v)) / 255; };
+function teamColorList(t) {
+  const own = lumOf(t.color) === null ? null : shows(t.color) ? t.color : lightened(t.color);
+  const alt = lumOf(t.alt) === null ? null : shows(t.alt) ? t.alt : lightened(t.alt);
+  const list = [own, own && lightened(t.color, 6), alt].filter(Boolean);
+  const keyed = list.map((c, i) => [chromaOf(c) < .15 ? 1 : 0, i, c]).sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(x => x[2]);
+  return keyed.length ? [...new Set(keyed)] : ['#A0A7BB'];
+}
+const teamColor = t => teamColorList(t)[0];
+/* two colours look alike when they are near in RGB or, as the eye sees it, within 20 in CIELAB (UNH and Syracuse's blues) */
+function labOf(x) {
+  const c = [0, 2, 4].map(i => parseInt(x.slice(1 + i, 3 + i), 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+  const X = (c[0] * .4124 + c[1] * .3576 + c[2] * .1805) / .95047, Y = c[0] * .2126 + c[1] * .7152 + c[2] * .0722, Z = (c[0] * .0193 + c[1] * .1192 + c[2] * .9505) / 1.08883;
+  const f = t => t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116;
+  return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
+}
+function alike(a, b) { const p = x => [0, 2, 4].map(i => parseInt(x.slice(1 + i, 3 + i), 16)); const [u, v] = [p(a), p(b)]; if (Math.hypot(u[0] - v[0], u[1] - v[1], u[2] - v[2]) < 90) return true; const [m, n] = [labOf(a), labOf(b)]; return Math.hypot(m[0] - n[0], m[1] - n[1], m[2] - n[2]) < 20; }
+function teamColors(a, h) {
+  const A = teamColorList(a), H = teamColorList(h);
+  const ch = H.find(c => !alike(A[0], c));
+  if (ch) return [A[0], ch];
+  const ca = A.find(c => !alike(c, H[0]));
+  return [ca || A[0], H[0]];
+}
 function teamCell(id, rank) {
   const t = T(id);
-  return `<span class="tw">${t.logo ? `<img src="${esc(t.logo)}" alt="" onerror="this.style.visibility='hidden'">` : ''}${rank ? `<span class="rk">${rank}</span>` : ''}<span>${esc(t.short)}</span></span>`;
+  return `<span class="tw">${logoImg(t)}${rank ? `<span class="rk">${rank}</span>` : ''}<span>${esc(t.short)}</span></span>`;
 }
 
 /* ---------- tabs ---------- */
 function showTab(name) {
-  for (const b of $('tabs').querySelectorAll('button')) b.classList.toggle('on', b.dataset.tab === name);
+  if (name !== P.ui.tab && $('ov').classList.contains('on')) closeOv(false);   // a window belongs to its tab; a redraw of the same tab (the live scores) keeps it
+  for (const b of $('tabs').querySelectorAll('button')) { b.classList.toggle('on', b.dataset.tab === name); if (b.dataset.tab === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
   for (const s of document.querySelectorAll('main > section')) s.hidden = s.id !== 'tab-' + name;
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
   P.ui.tab = name; save();
   ({ games: renderGames, news: renderNews, rankings: renderRankings, ratings: renderRatings, playoff: renderPlayoff, parlays: renderParlays, record: renderRecord })[name]();
 }
-$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
-window.addEventListener('hashchange', () => { const n = location.hash.slice(1); if (n && $('tab-' + n)) showTab(n); });
+$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { showTab(b.dataset.tab); toTabTop(); } });
+/* on a phone the tabs stay stuck at the top: a tab chosen from deep in a page opens at its own top, just under them */
+function toTabTop() {
+  const h = document.querySelector('header'); if (!h.classList.contains('stuck') || getComputedStyle(h).position !== 'sticky') return;
+  const se = document.scrollingElement || document.documentElement;
+  const top = document.querySelector('main').getBoundingClientRect().top + se.scrollTop - $('tabs').getBoundingClientRect().bottom;
+  if (top < se.scrollTop) se.scrollTop = Math.max(0, top);
+}
+window.addEventListener('hashchange', () => { const n = location.hash.slice(1); if (n && $('tab-' + n)) { showTab(n); toTabTop(); } });
 
 /* ---------- Games ---------- */
 function weekOptions() {
@@ -373,6 +643,42 @@ function weekOptions() {
   for (const id of ['confSel', 'ratConf']) $(id).innerHTML = '<option value="">Every conference</option>' + confs.map(c => `<option value="${c}">${esc(confName(c))}</option>`).join('');
 }
 $('weekSel').addEventListener('change', renderGames);
+/* the weeks as the NBA Hub's day strip: each tile sets the (hidden) week selector, which the tab reads */
+function renderWeekDays(filter) {
+  const sel = $('weekSel'); const cur = sel.value;
+  const count = v => S.games.filter(g => (v === 'post' ? g.type === 3 : g.type === 2 && String(g.week) === v) && filter(g)).length;
+  $('weekDays').innerHTML = [...sel.options].map(o => {
+    const v = o.value, n = count(v), here = v === String(S.week);
+    return `<button class="day${v === cur ? ' on' : ''}" type="button" data-week="${v}"${v === cur ? ' aria-pressed="true"' : ' aria-pressed="false"'} aria-label="${esc(o.textContent)}${here ? ', this week' : ''}, ${n} games">
+      <div class="dw">${here ? 'This week' : v === 'post' ? 'Bowls' : 'Week'}</div><div class="dn">${v === 'post' ? 'Post' : v}</div><div class="dc">${n} game${n === 1 ? '' : 's'}</div></button>`;
+  }).join('');
+  const on = $('weekDays').querySelector('.day.on');
+  if (on) nearestInStrip($('weekDays'), on);
+  stripEdges($('weekDays'));
+}
+/* bring a tile wholly into its strip, scrolling no further than that, clear of the faded edges */
+function nearestInStrip(box, el) {
+  if (!box.clientWidth) return;
+  const pad = 36, l = el.offsetLeft - box.offsetLeft, r = l + el.offsetWidth;
+  if (l - pad < box.scrollLeft) box.scrollLeft = Math.max(0, l - pad);
+  else if (r + pad > box.scrollLeft + box.clientWidth) box.scrollLeft = r + pad - box.clientWidth;
+}
+function stripEdges(box) {
+  const max = box.scrollWidth - box.clientWidth;
+  box.classList.toggle('more-l', max > 1 && box.scrollLeft > 1); box.classList.toggle('more-r', max > 1 && box.scrollLeft < max - 1);
+}
+$('weekDays').addEventListener('scroll', () => stripEdges($('weekDays')), { passive: true });
+window.addEventListener('resize', () => stripEdges($('weekDays')));
+/* a tile or a tab reached by the keyboard is brought wholly into its strip */
+$('weekDays').addEventListener('focusin', e => { const t = e.target.closest('.day'); if (t) nearestInStrip($('weekDays'), t); });
+$('tabs').addEventListener('focusin', e => { const t = e.target.closest('button'), box = $('tabs'); if (!t || !box.clientWidth) return;
+  const l = t.offsetLeft - box.offsetLeft, r = l + t.offsetWidth, pad = 8;
+  if (l - pad < box.scrollLeft) box.scrollLeft = Math.max(0, l - pad); else if (r + pad > box.scrollLeft + box.clientWidth) box.scrollLeft = r + pad - box.clientWidth; });
+$('weekDays').addEventListener('click', e => {
+  const b = e.target.closest('button[data-week]'); if (!b) return;
+  $('weekSel').value = b.dataset.week; $('weekSel').dispatchEvent(new Event('change'));
+  const nb = $('weekDays').querySelector(`button[data-week="${b.dataset.week}"]`); if (nb) nb.focus({ preventScroll: true });
+});
 $('confSel').addEventListener('change', () => { P.ui.conf = $('confSel').value; save(); renderGames(); });
 $('scope').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; P.ui.scope = b.dataset.scope; save(); renderGames(); });
 
@@ -382,13 +688,12 @@ function renderGames() {
   const wk = $('weekSel').value; const scope = P.ui.scope || 'major'; const conf = P.ui.conf || '';
   for (const b of $('scope').querySelectorAll('button')) b.classList.toggle('on', b.dataset.scope === scope);
   $('confSel').value = conf;
-  let gs = S.games.filter(g => wk === 'post' ? g.type === 3 : (g.type === 2 && String(g.week) === wk));
-  if (conf) gs = gs.filter(g => T(g.home).conf === conf || T(g.away).conf === conf);
-  else if (scope === 'major') gs = gs.filter(isMajorGame);
-  else if (scope === 'ranked') gs = gs.filter(isRankedGame);
+  const keep = g => conf ? (T(g.home).conf === conf || T(g.away).conf === conf) : scope === 'major' ? isMajorGame(g) : scope === 'ranked' ? isRankedGame(g) : true;
+  renderWeekDays(keep);
+  let gs = S.games.filter(g => (wk === 'post' ? g.type === 3 : (g.type === 2 && String(g.week) === wk)) && keep(g));
   gs.sort(byKick);
   $('gamesNote').textContent = gs.length ? `${gs.length} games` : '';
-  if (!gs.length) { $('games').innerHTML = '<div class="empty">No games here. Widen the filter.</div>'; return; }
+  if (!gs.length) { $('games').innerHTML = '<div class="empty"><b>No games here</b>Widen the filter, or pick another week.</div>'; return; }
   $('games').innerHTML = gs.map(gameCard).join('');
 }
 /* the card's status: ESPN's as this browser read it, else the job's (a score the job saw under
@@ -397,7 +702,7 @@ function statusOf(g) {
   const live = LIVE[g.id];
   if (live) return { text: live.detail, cls: live.state === 'live' ? 'live' : '' };
   if (g.state === 'live') return { text: `${g.detail || 'in progress'} · as of ${clock(S.published)}`, cls: 'live' };
-  if (g.state === 'final') return { text: g.detail || 'Final', cls: '' };
+  if (g.state === 'final') return { text: g.detail || 'Final', cls: 'fin' };
   if (g.state === 'postponed') return { text: g.detail || 'Postponed', cls: 'started' };
   if (g.gone) return { text: 'no longer in ESPN\'s schedule · the call made before kickoff kept', cls: 'started' };
   if (kickedOff(g)) return { text: tbdTime(g) ? 'game day · time TBA' : 'kicked off · result after the next run', cls: 'started' };
@@ -423,7 +728,7 @@ function gameCard(g) {
   const line = g.line;
   const side = (id, rank, rec, p, sc, picked, won) => `
     <div class="side ${picked ? 'picked' : ''} ${won ? 'won' : ''}">
-      ${T(id).logo ? `<img src="${esc(T(id).logo)}" alt="" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+      ${T(id).logo ? logoImg(T(id)) : '<span></span>'}
       <span class="nm">${rank ? `<span class="rk">${rank}</span>` : ''}${esc(T(id).short)}<small>${esc(rec || '')}${T(id).fbs ? '' : ' · FCS'}</small></span>
       <span class="wp" title="the model's chance">${pct(p)}</span>
       <span class="sc">${sc === null || sc === undefined ? '' : sc}</span>
@@ -433,8 +738,8 @@ function gameCard(g) {
   /* a line older than the job's last run, on a game still to come: ESPN no longer carries it */
   const stale = line && g.state === 'pre' && !kickedOff(g) && !freshLine(g);
   if (line) {
-    mkt = line.homeLine === null || line.homeLine === undefined ? '—' : (line.homeLine <= 0 ? `${th.abbr} ${fmtLine(line.homeLine)}` : `${ta.abbr} ${fmtLine(-line.homeLine)}`) + (line.total ? ` · o/u ${line.total}` : '');
-    ml = `${ta.abbr} ${fmtOdds(line.awayML)} · ${th.abbr} ${fmtOdds(line.homeML)}`;
+    mkt = line.homeLine === null || line.homeLine === undefined ? '—' : (line.homeLine <= 0 ? `<span class="nw">${th.abbr} ${fmtLine(line.homeLine)}</span>` : `<span class="nw">${ta.abbr} ${fmtLine(-line.homeLine)}</span>`) + (line.total ? ` · <span class="nw">o/u ${line.total}</span>` : '');
+    ml = `<span class="nw">${ta.abbr} ${fmtOdds(line.awayML)}</span> · <span class="nw">${th.abbr} ${fmtOdds(line.homeML)}</span>`;
     if (stale) { mkt += ` <small>read ${shortDate(line.at)}, not current</small>`; }
     else if (line.held) mkt += ` <small title="ESPN left the line out at the job's last run before kickoff; the game is graded on the one it carried before">read ${clock(line.at)}, the last before kickoff</small>`;
   }
@@ -451,18 +756,21 @@ function gameCard(g) {
     if (!g.frozen) result += ` <span class="tag replay" title="this game was over before the job first ran; the call is the replay's">replayed</span>`;
   }
   const legBtn = (sd, kind) => legButton(g, sd, kind, line, !bettable(g));
+  const btns = legBtn('away', 'ml') + legBtn('home', 'ml') + legBtn('away', 'spread') + legBtn('home', 'spread');
   const st = statusOf(g);
-  return `<div class="game" data-id="${g.id}"${kickedOff(g) ? ' data-started="1"' : ''}>
-    <div class="when"><span>${when(g)}${g.neutral ? ' · neutral' : ''}${g.note ? ' · ' + esc(g.note) : ''}</span><span class="${st.cls}">${esc(st.text)}</span></div>
+  const stTag = st.text ? `<span class="tag ${st.cls || ''}${st.text.length > 22 ? ' long' : ''}">${esc(st.text)}</span>` : '';
+  return `<div class="game${final ? ' final' : ''}" data-id="${g.id}"${kickedOff(g) ? ' data-started="1"' : ''}>
+    <div class="when"><span>${when(g)}${g.neutral ? ' · neutral' : ''}${g.note ? ' · ' + esc(g.note) : ''}</span>${stTag ? `<span class="tags">${stTag}</span>` : ''}</div>
     ${side(g.away, g.arank, g.arec, pAway, as, g.pick === 'away', awayWon)}
     ${side(g.home, g.hrank, g.hrec, g.pHome, hs, g.pick === 'home', homeWon)}
+    <div class="prob" title="the model's chance: ${esc(ta.abbr)} ${pct(pAway)}, ${esc(th.abbr)} ${pct(g.pHome)}" aria-hidden="true"><i class="${g.pick === 'away' ? 'pk' : ''}" style="width:${(pAway * 100).toFixed(1)}%"></i><i class="h${g.pick === 'home' ? ' pk' : ''}" style="width:${(g.pHome * 100).toFixed(1)}%"></i></div>
     <div class="lines">
       <div><div class="k">Model spread</div><div class="v">${modelLine}</div></div>
       <div><div class="k">${line ? esc(line.book || 'Book') : 'Book'}</div><div class="v">${mkt}</div></div>
       <div><div class="k">Moneyline</div><div class="v">${ml}</div></div>
       <div><div class="k">${g.result ? 'Result' : 'Against the spread'}</div><div class="v">${g.result ? result : (callTag || '<span class="muted">no line yet</span>')}</div></div>
     </div>
-    ${g.result ? '' : `<div class="legbtns"><span class="k">Add to parlay</span>${legBtn('away', 'ml')}${legBtn('home', 'ml')}${legBtn('away', 'spread')}${legBtn('home', 'spread')}</div>`}
+    ${g.result || !btns ? '' : `<div class="legbtns"><span class="k">Add to parlay</span>${btns}</div>`}
   </div>`;
 }
 /* one button for one bet on one game: a moneyline or a spread, either side. Empty when the
@@ -493,8 +801,10 @@ document.addEventListener('click', e => {
     P.legs.push({ game: gid, side, kind, odds, line: ln, p, label: `${T(g.away).abbr} @ ${T(g.home).abbr}`, team: T(g[side]).abbr, week: g.week, type: g.type });
   }
   save(); updateLegCount();
+  const had = document.activeElement === b, inLines = !!b.closest('#plLines');
   if (!$('tab-games').hidden) renderGames();
   if (!$('tab-parlays').hidden) renderParlays();
+  if (had) { const nb = document.querySelector(`${inLines ? '#plLines' : '#games'} button[data-leg="${b.dataset.leg}"]`); if (nb) nb.focus({ preventScroll: true }); }
 });
 function updateLegCount() { const n = P.legs.length; $('legCount').hidden = !n; $('legCount').textContent = n; }
 
@@ -523,23 +833,24 @@ async function autoScores() {
   try { if (await readScores(wk)) rerender(); } catch (e) { /* the job's scores stay, dated */ }
 }
 $('refreshScores').addEventListener('click', async () => {
-  const wk = $('weekSel').value; const btn = $('refreshScores'); btn.disabled = true; btn.textContent = 'Reading…';
-  try { const n = await readScores(wk); btn.textContent = `Scores read (${n})`; } catch (e) { btn.textContent = 'ESPN did not answer'; }
-  setTimeout(() => { btn.textContent = 'Refresh scores'; btn.disabled = false; }, 2500);
+  const wk = $('weekSel').value; const btn = $('refreshScores'), lab = btn.querySelector('span'); btn.disabled = true; btn.classList.add('busy'); lab.textContent = 'Reading…';
+  try { const n = await readScores(wk); lab.textContent = `Scores read (${n})`; } catch (e) { lab.textContent = 'ESPN did not answer'; }
+  btn.classList.remove('busy');
+  setTimeout(() => { lab.textContent = 'Refresh scores'; btn.disabled = false; }, 2500);
   renderGames();
 });
 
 /* ---------- CFB News: the week's slate as a newsletter, a window per game ---------- */
 async function renderNews() {
   if (!NEWS) {
-    $('slate').innerHTML = '<div class="empty">Reading the week…</div>';
+    $('slate').innerHTML = '<div class="empty"><b>Reading the week…</b></div>';
     try { const r = await fetch(NEWS_URL + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); NEWS = await r.json(); }
-    catch (e) { $('slate').innerHTML = `<div class="empty">No news file yet (${esc(e.message)}). The job writes it after each run.</div>`; return; }
+    catch (e) { $('slate').innerHTML = `<div class="empty"><b>No news file yet</b>${esc(e.message)}. The job writes it after each run.</div>`; return; }
   }
   const G = gameById();
   $('newsLabel').textContent = NEWS.label || ''; $('newsDates').textContent = NEWS.dates || '';
   $('newsNote').textContent = NEWS.published ? 'Written ' + new Date(NEWS.published).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
-  if (!NEWS.games.length) { $('slate').innerHTML = '<div class="empty">Nothing on the slate this week.</div>'; return; }
+  if (!NEWS.games.length) { $('slate').innerHTML = '<div class="empty"><b>Nothing on the slate</b>No games are written up this week.</div>'; return; }
   $('slate').innerHTML = NEWS.games.slice().sort((x, y) => Date.parse(x.kick) + (x.tbd ? 86399e3 : 0) - Date.parse(y.kick) - (y.tbd ? 86399e3 : 0)).map(n => {
     const g = G[n.id] || {}; const a = T(n.away), h = T(n.home);
     const live = LIVE[n.id]; const state = live ? live.state : g.state; const hs = live ? live.hs : g.hs, as = live ? live.as : g.as;
@@ -549,30 +860,34 @@ async function renderNews() {
     const when = done ? day : tbd ? `${day} · time TBA` : `${day} · ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
     const started = !done && state !== 'live' && g.id && kickedOff(g);
     const won = id => done && ((id === n.home) === (hs > as)) && hs !== as;
-    const team = (t, id) => `<span class="team ${done ? (won(id) ? 'won' : 'lost') : ''}">${t.logo ? `<img src="${esc(t.logo)}" alt="" onerror="this.style.visibility='hidden'">` : ''}${t.ap ? `<span class="rk">${t.ap}</span>` : ''}${esc(t.abbr)}</span>`;
+    const team = (t, id) => `<span class="team ${done ? (won(id) ? 'won' : 'lost') : ''}">${logoImg(t)}${t.ap ? `<span class="rk">${t.ap}</span>` : ''}${esc(t.abbr)}</span>`;
     return `<button class="slot ${done ? 'final' : ''}" type="button" data-news="${n.id}" aria-label="Open ${esc(a.name)} at ${esc(h.name)}">
       <div class="when">${esc(when)}${done ? '<span class="fin">Final</span>' : state === 'live' ? (live ? '<span class="liv">Live</span>' : `<span class="liv">Live as of ${esc(clock(S.published))}</span>`) : started ? `<span class="kick">${tbd ? 'Game day' : 'Kicked off'}</span>` : ''}</div>
       <div class="vs">${team(a, n.away)}<em>${g.neutral ? 'vs' : 'at'}</em>${team(h, n.home)}${done || state === 'live' ? `<span class="score">${as} - ${hs}</span>` : ''}</div>
-      <div class="meta" title="${[n.tv, n.venue].filter(Boolean).map(esc).join(' · ')}">${[n.tv, n.venue].filter(Boolean).map(esc).join(' · ')}</div>
+      <div class="meta" title="${[tvName(n.tv), n.venue].filter(Boolean).map(esc).join(' · ')}">${[tvName(n.tv), n.venue].filter(Boolean).map(esc).join(' · ')}</div>
       <div class="hook">${esc(n.note || '')}${n.credit ? ` <small class="muted">(${esc(n.credit)})</small>` : ''}</div>
       <div class="more">Full breakdown ›</div>
     </button>`;
   }).join('');
 }
-$('slate').addEventListener('click', e => { const b = e.target.closest('button[data-news]'); if (b) openNews(b.dataset.news); });
+/* a network ESPN sent as a bare number is an id, not a name: left out */
+const tvName = tv => /^\s*\d+\s*$/.test(String(tv || '')) ? '' : tv;
+$('slate').addEventListener('click', e => { const b = e.target.closest('button[data-news]'); if (b) { OV_FROM = b; openNews(b.dataset.news); } });
+let OV_FROM = null;   // the tile that opened the window, which takes the focus back
 
 function openNews(id) {
   const n = (NEWS && NEWS.games || []).find(x => x.id === id); if (!n) return;
   const g = gameById()[id] || {}; const a = T(n.away), h = T(n.home);
+  const [ac, hc] = teamColors(a, h);
   const done = g.state === 'final' && g.hs !== null;
   const d = new Date(n.kick); const tbd = n.tbd || (g.id && tbdTime(g));
-  const meta = [done ? `Final ${g.as}-${g.hs}` : '', d.toLocaleDateString(undefined, Object.assign({ weekday: 'short', month: 'short', day: 'numeric' }, tbd ? { timeZone: ET } : {})), done ? '' : tbd ? 'time TBA' : d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), n.tv, n.venue, n.line].filter(Boolean).map(esc).join(' · ');
+  const meta = [done ? `Final ${g.as}-${g.hs}` : '', d.toLocaleDateString(undefined, Object.assign({ weekday: 'short', month: 'short', day: 'numeric' }, tbd ? { timeZone: ET } : {})), done ? '' : tbd ? 'time TBA' : d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), tvName(n.tv), n.venue, n.line].filter(Boolean).map(esc).join(' · ');
   const block = (side) => {
     const t = T(n[side]); const e = n.teams[side] || {}; const ap = t.ap ? `<span class="tag">AP ${t.ap}</span>` : '';
     const rec = t.fbs ? `${t.w}-${t.l}${t.cw + t.cl ? ` · ${t.cw}-${t.cl} ${esc(confName(t.conf))}` : ''}` : ((side === 'home' ? g.hrec : g.arec) || '');
     const form = (e.lastFive || []).length ? `<h5>Form</h5><div class="form">${e.lastFive.map(x => `<span class="${esc(x.result)}" title="${esc(x.oppName)}">${esc(x.result)} ${esc(x.score)} ${esc(x.at)} ${esc(x.opp)}</span>`).join('')}</div>` : '';
-    return `<div class="tb" style="--tc:${esc(t.color || '#999')}">
-      <div class="tbhd">${t.logo ? `<img src="${esc(t.logo)}" alt="" onerror="this.style.visibility='hidden'">` : ''}<div><h4>${esc(t.name)}</h4><div class="chips">${ap}<span class="tag">${rec}</span>${t.fbs ? `<span class="tag">model #${t.rank} · ${t.rating}</span>` : '<span class="tag">FCS</span>'}</div></div></div>
+    return `<div class="tb">
+      <div class="tbhd">${logoImg(t)}<div><h4>${esc(t.name)}</h4><div class="chips">${ap}<span class="tag">${rec}</span>${t.fbs ? `<span class="tag">model #${t.rank} · ${t.rating}</span>` : '<span class="tag">FCS</span>'}</div></div></div>
       <h5>Matchup</h5><ul>${(e.bullets || []).map(b => `<li>${b}</li>`).join('') || '<li class="muted">Nothing written for this side.</li>'}</ul>
       ${form}
     </div>`;
@@ -602,28 +917,45 @@ function openNews(id) {
     }
     const aw = x !== null && y !== null && x !== y ? (r.lo ? x < y : x > y) : false, hw = x !== null && y !== null && x !== y ? (r.lo ? y < x : y > x) : false;
     const fmt = v => v === null ? '–' : (r.pct ? Math.round(v) + '%' : (r.sign && v > 0 ? '+' : '') + (Math.abs(v) % 1 ? v.toFixed(1) : v));
-    return `<div class="sbar"><div class="sv ${aw ? 'win' : ''}">${fmt(x)}</div><div><span class="lb">${r.label}${r.note ? `<small>${r.note}</small>` : ''}</span><span class="track"><span class="half l"><i style="width:${pa}%;background:${esc(a.color || '#999')}"></i></span><span class="half r"><i style="width:${ph}%;background:${esc(h.color || '#999')}"></i></span></span></div><div class="sv ${hw ? 'win' : ''}">${fmt(y)}</div></div>`;
+    return `<div class="sbar"><div class="sv ${aw ? 'win' : ''}">${fmt(x)}</div><div><span class="lb">${r.label}${r.note ? `<small>${r.note}</small>` : ''}</span><span class="track"><span class="half l"><i style="width:${pa}%;background:${esc(ac)}"></i></span><span class="half r"><i style="width:${ph}%;background:${esc(hc)}"></i></span></span></div><div class="sv ${hw ? 'win' : ''}">${fmt(y)}</div></div>`;
   };
-  $('ovbox').innerHTML = `<div class="ovhd"><div><h3><i style="background:${esc(a.color || '#999')}"></i>${esc(a.name)}<em>${g.neutral ? 'vs' : 'at'}</em><i style="background:${esc(h.color || '#999')}"></i>${esc(h.name)}</h3><div class="sub">${meta}</div></div><button class="x" id="ovx" aria-label="Close">×</button></div>
+  $('ovbox').innerHTML = `<div class="ovhd"><div><h3 id="ovtitle"><i style="background:${esc(ac)}"></i>${esc(a.name)}<em>${g.neutral ? 'vs' : 'at'}</em><i style="background:${esc(hc)}"></i>${esc(h.name)}</h3><div class="sub">${meta}</div></div><button class="x" id="ovx" type="button" aria-label="Close">×</button></div>
     <div class="ovbody">${n.note ? `<p class="ovnote">${esc(n.note)}</p>` : ''}
       ${n.stale ? `<p class="small muted" id="ovstale">ESPN's game summary did not answer at the job's last run: this preview is the one written ${esc(clock(n.stale))}.</p>` : ''}
       ${(n.gaps || []).length ? `<p class="small muted" id="ovgaps">Not read at the job's last run, so left out: ${n.gaps.map(esc).join(', ')}.</p>` : ''}
       ${n.story && n.story.paragraphs && n.story.paragraphs.length ? `<div class="ovstory"><h5>${esc(n.story.headline || 'The story')}</h5>${n.story.paragraphs.map(p => `<p>${esc(p)}</p>`).join('')}<p class="src">${esc(n.story.source)}</p></div>` : ''}
       <div class="duo">${block('away')}${block('home')}</div>
       <div class="ovsec">Full stat breakdown<small>${NEWS.season} season to date</small></div>
-      <div class="ovlegend"><span><i style="background:${esc(a.color || '#999')}"></i>${esc(a.name)}</span><span><i style="background:${esc(h.color || '#999')}"></i>${esc(h.name)}</span><span>Green marks the better number</span></div>
+      <div class="ovlegend"><span><i style="background:${esc(ac)}"></i>${esc(a.name)}</span><span><i style="background:${esc(hc)}"></i>${esc(h.name)}</span><span>Lime marks the better number</span></div>
       ${rows.map(bar).join('')}
     </div>`;
-  $('ov').classList.add('on'); $('ov').scrollTop = 0; document.body.style.overflow = 'hidden';
-  $('ovx').addEventListener('click', closeOv);
+  $('ov').classList.add('on'); $('ovbox').scrollTop = 0; document.body.style.overflow = 'hidden';
+  $('ovx').addEventListener('click', () => closeOv());
+  $('ovx').focus({ preventScroll: true });
 }
 /* a season total a game: early in the season two teams have not played the same number */
 function perGame(s, k, kg) { if (s[kg] !== undefined && s[kg] !== null) return s[kg]; const v = num(s[k]); return v === null || !s.gp ? null : Math.round(v / s.gp * 10) / 10; }
 function diffOf(s) { return (s.ppg === null || s.ppg === undefined || s.pa === null || s.pa === undefined) ? null : Math.round((s.ppg - s.pa) * 10) / 10; }
 function num(v) { return v === null || v === undefined || v === '' ? null : (isFinite(+v) ? +v : null); }
-function closeOv() { $('ov').classList.remove('on'); document.body.style.overflow = ''; }
+function closeOv(refocus = true) {
+  $('ov').classList.remove('on'); document.body.style.overflow = '';
+  const back = OV_FROM; OV_FROM = null;
+  if (refocus && back && back.isConnected) back.focus({ preventScroll: true });
+}
 $('ov').addEventListener('click', e => { if (e.target === $('ov')) closeOv(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('ov').classList.contains('on')) closeOv(); });
+document.addEventListener('keydown', e => {
+  if (!$('ov').classList.contains('on')) return;
+  if (e.key === 'Escape') { closeOv(); return; }
+  /* Tab stays inside the window */
+  if (e.key === 'Tab') {
+    const f = [...$('ovbox').querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (!$('ovbox').contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
 
 /* ---------- Rankings ---------- */
 function renderRankings() {
@@ -634,11 +966,11 @@ function renderRankings() {
     (basis.carried ? ` ESPN's rankings feed did not carry this poll at the job's last run: this is the poll as read ${shortDate(basis.read)}.` : '');
   const po = (S.playoff && S.playoff.odds) || {};
   const rows = basis.ranks.map(r => { const t = T(r.team); return `<tr class="${t.major ? 'major' : ''}">
-    <td class="n">${r.rank}</td><td class="n muted">${r.prev ? (r.prev === r.rank ? '·' : r.prev > r.rank ? '▲' + (r.prev - r.rank) : '▼' + (r.rank - r.prev)) : 'new'}</td>
+    <td class="rk">${r.rank}</td><td class="mv">${r.prev ? (r.prev === r.rank ? '·' : r.prev > r.rank ? '<span class="up">▲' + (r.prev - r.rank) + '</span>' : '<span class="dn">▼' + (r.rank - r.prev) + '</span>') : 'new'}</td>
     <td>${teamCell(r.team)}</td><td>${esc(r.record || `${t.w}-${t.l}`)}</td><td class="muted">${esc(confName(t.conf))}</td>
     <td class="n">${t.coaches ?? '—'}</td>${R.cfp && R.ap ? `<td class="n">${t.ap ?? '—'}</td>` : ''}
     <td class="n"><b>${t.rank ?? '—'}</b></td><td class="n">${t.rating}</td><td class="n">${po[r.team] ? pct(po[r.team].playoff) : '—'}</td></tr>`; });
-  $('rankTable').innerHTML = `<thead><tr><th class="n">#</th><th class="n">Δ</th><th>Team</th><th>Rec</th><th>Conf</th><th class="n">Coaches</th>${R.cfp && R.ap ? '<th class="n">AP</th>' : ''}<th class="n">Model</th><th class="n">Rating</th><th class="n">Playoff</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+  $('rankTable').innerHTML = `<thead><tr><th class="rk">#</th><th>Δ</th><th>Team</th><th>Rec</th><th>Conf</th><th class="n">Coaches</th>${R.cfp && R.ap ? '<th class="n">AP</th>' : ''}<th class="n">Model</th><th class="n">Rating</th><th class="n">Playoff</th></tr></thead><tbody>${rows.join('')}</tbody>`;
   const ranked = new Set(basis.ranks.map(r => r.team));
   const gap = Object.keys(S.teams).filter(id => T(id).fbs && T(id).rank <= 25 && !ranked.has(id)).sort((a, b) => T(a).rank - T(b).rank);
   $('rankGap').innerHTML = gap.length ? gap.map(id => `<span class="tag">#${T(id).rank} ${esc(T(id).short)} · ${T(id).w}-${T(id).l}</span>`).join('') : '<span class="muted small">None: the polls and the model agree on the top 25.</span>';
@@ -653,8 +985,8 @@ function renderRatings() {
   let ids = Object.keys(S.teams).filter(id => T(id).fbs);
   if (conf) ids = ids.filter(id => T(id).conf === conf); else if (major) ids = ids.filter(id => T(id).major);
   ids.sort((a, b) => T(b).rating - T(a).rating);
-  $('ratTable').innerHTML = `<thead><tr><th class="n">#</th><th>Team</th><th>Conf</th><th class="n">Rating</th><th class="n">Rec</th><th class="n">Conf</th><th class="n">PF</th><th class="n">PA</th><th class="n">AP</th><th class="n">Playoff</th></tr></thead><tbody>` +
-    ids.map(id => { const t = T(id); return `<tr class="${t.major ? 'major' : ''}"><td class="n">${t.rank}</td><td>${teamCell(id, t.ap)}</td><td class="muted">${esc(confName(t.conf))}</td><td class="n"><b>${t.rating}</b></td><td class="n">${t.w}-${t.l}</td><td class="n">${t.cw}-${t.cl}</td><td class="n">${t.pf}</td><td class="n">${t.pa}</td><td class="n">${t.ap ?? '—'}</td><td class="n">${po[id] ? pct(po[id].playoff) : '—'}</td></tr>`; }).join('') + '</tbody>';
+  $('ratTable').innerHTML = `<thead><tr><th class="rk">#</th><th>Team</th><th>Conf</th><th class="n">Rating</th><th class="n">Rec</th><th class="n">Conf</th><th class="n">PF</th><th class="n">PA</th><th class="n">AP</th><th class="n">Playoff</th></tr></thead><tbody>` +
+    ids.map(id => { const t = T(id); return `<tr class="${t.major ? 'major' : ''}"><td class="rk">${t.rank}</td><td>${teamCell(id, t.ap)}</td><td class="muted">${esc(confName(t.conf))}</td><td class="n"><b>${t.rating}</b></td><td class="n">${t.w}-${t.l}</td><td class="n">${t.cw}-${t.cl}</td><td class="n">${t.pf}</td><td class="n">${t.pa}</td><td class="n">${t.ap ?? '—'}</td><td class="n">${po[id] ? pct(po[id].playoff) : '—'}</td></tr>`; }).join('') + '</tbody>';
 }
 
 /* ---------- Playoff ---------- */
@@ -680,7 +1012,7 @@ function renderPlayoff() {
     ids.map(id => { const t = T(id), o = PO.odds[id]; return `<tr class="${t.major ? 'major' : ''}"><td>${teamCell(id, t.ap)}</td><td class="muted">${esc(confName(t.conf))}</td><td class="n">${t.w}-${t.l}</td><td class="n">${o.expWins}</td><td>${bar(o.playoff)}</td><td class="n">${pct(o.bye)}</td><td class="n">${pct(o.conf)}</td><td class="n">${outSet.has(id) ? '<span class="tag out">out</span>' : pct1(o.title)}</td></tr>`; }).join('') + '</tbody>';
   const confs = Object.keys(PO.standings).sort((a, b) => (S.p4.includes(a) ? 0 : 1) - (S.p4.includes(b) ? 0 : 1) || confName(a).localeCompare(confName(b)));
   $('standings').innerHTML = confs.map(c => `<details ${S.p4.includes(c) ? 'open' : ''}><summary><b>${esc(confName(c))}</b> <span class="muted small">leader ${esc(T(PO.champs[c]).short)}</span></summary>
-    <table><thead><tr><th>Team</th><th class="n">Conf</th><th class="n">Overall</th><th class="n">Rating</th><th class="n">Conf title</th></tr></thead><tbody>${PO.standings[c].map(r => `<tr><td>${teamCell(r.team, T(r.team).ap)}</td><td class="n">${r.cw}-${r.cl}</td><td class="n">${r.w}-${r.l}</td><td class="n">${T(r.team).rating}</td><td class="n">${PO.odds[r.team] ? pct(PO.odds[r.team].conf) : '—'}</td></tr>`).join('')}</tbody></table></details>`).join('');
+    <div class="scroll x"><table><thead><tr><th>Team</th><th class="n">Conf</th><th class="n">Overall</th><th class="n">Rating</th><th class="n">Conf title</th></tr></thead><tbody>${PO.standings[c].map(r => `<tr><td>${teamCell(r.team, T(r.team).ap)}</td><td class="n">${r.cw}-${r.cl}</td><td class="n">${r.w}-${r.l}</td><td class="n">${T(r.team).rating}</td><td class="n">${PO.odds[r.team] ? pct(PO.odds[r.team].conf) : '—'}</td></tr>`).join('')}</tbody></table></div></details>`).join('');
 }
 
 /* ---------- Parlays ---------- */
@@ -704,10 +1036,10 @@ function renderParlayLines() {
   let gs = S.games.filter(g => (S.week === 'post' ? g.type === 3 : g.type === 2 && g.week === S.week) && bettable(g));
   if (scope === 'major') gs = gs.filter(isMajorGame); else if (scope === 'ranked') gs = gs.filter(isRankedGame);
   gs.sort(byKick);
-  $('plNote').textContent = gs.length ? `${gs.length} games still to come with a DraftKings number, read at the job's last run (${clock(runStamp())}). The green figure is the model's chance for the side listed first.` : '';
+  $('plNote').textContent = gs.length ? `${gs.length} games still to come with a DraftKings number, read at the job's last run (${clock(runStamp())}). The lime figure is the model's chance for the side listed first.` : '';
   if (!gs.length) { $('plLines').innerHTML = '<tbody><tr><td class="empty">Nothing to bet here right now: every lined game has kicked off, or DraftKings has no number on it at the job\'s last run. Lines are read at every run of the job.</td></tr></tbody>'; return; }
   $('plLines').innerHTML = '<thead><tr><th>Game</th><th>Kickoff</th><th>Model</th><th>Moneyline</th><th>Spread</th></tr></thead><tbody>' + gs.map(g => `<tr>
-    <td>${teamCell(g.away, g.arank)} <span class="muted">@</span> ${teamCell(g.home, g.hrank)}</td>
+    <td><span class="matchup">${teamCell(g.away, g.arank)}<span class="muted">@</span>${teamCell(g.home, g.hrank)}</span></td>
     <td class="muted small">${when(g)}</td>
     <td class="small"><span style="color:var(--pick);font-weight:600">${T(g.away).abbr} ${pct(1 - g.pHome)}</span> · ${g.spread === 0 ? 'PK' : (g.spread < 0 ? `${T(g.home).abbr} ${g.spread}` : `${T(g.away).abbr} ${-g.spread}`)}</td>
     <td>${legButton(g, 'away', 'ml', g.line, false)}${legButton(g, 'home', 'ml', g.line, false)}</td>
@@ -722,14 +1054,16 @@ function pruneLegs() {
 }
 function renderParlays() {
   pruneLegs(); updateLegCount(); renderParlayLines();
-  $('legs').innerHTML = P.legs.length ? P.legs.map((l, i) => `<div class="leg"><span>${esc(l.label)} · ${legText(l)}</span><span class="muted small">${weekLabel(l)}</span><span class="n" title="the model's chance">${pct(l.p)}</span><button class="x" data-i="${i}" title="remove">×</button></div>`).join('') : '<div class="empty">No legs yet. Pick moneylines and spreads on the Games tab.</div>';
+  $('legs').classList.toggle('ticket', P.legs.length > 0);
+  $('legs').innerHTML = P.legs.length ? P.legs.map((l, i) => `<div class="leg"><span>${esc(l.label)} · ${legText(l)}</span><span class="muted small">${weekLabel(l)}</span><span class="n" title="the model's chance">${pct(l.p)}</span><button class="x" data-i="${i}" title="remove" aria-label="Remove this leg">×</button></div>`).join('') : '<div class="empty"><b>No legs yet</b>Pick moneylines and spreads below, or on the Games tab.</div>';
   const pr = priceLegs(P.legs); const stake = +$('stake').value || 0;
   $('parlayTotals').innerHTML = pr ? `
-    <div class="stat"><div class="k">Parlay odds</div><div class="v">${pr.am}</div></div>
-    <div class="stat"><div class="k">Book's implied</div><div class="v">${pct1(pr.imp)}</div></div>
-    <div class="stat"><div class="k">Model's chance</div><div class="v ${pr.p > pr.imp ? 'good' : 'bad'}">${pct1(pr.p)}</div></div>
-    <div class="stat"><div class="k">Pays</div><div class="v">$${(stake * pr.dec).toFixed(2)}</div></div>
-    <div class="stat"><div class="k">Model EV a $</div><div class="v ${pr.ev >= 0 ? 'good' : 'bad'}">${signed(pr.ev.toFixed(2))}</div></div>` : '';
+    <div class="stat"><div class="v">${pr.am}</div><div class="k">Parlay odds</div></div>
+    <div class="stat"><div class="v">${pct1(pr.imp)}</div><div class="k">Book's implied</div></div>
+    <div class="stat"><div class="v ${pr.p > pr.imp ? 'good' : 'bad'}">${pct1(pr.p)}</div><div class="k">Model's chance</div></div>
+    <div class="stat"><div class="v">$${(stake * pr.dec).toFixed(2)}</div><div class="k">Pays</div></div>
+    <div class="stat"><div class="v ${pr.ev >= 0 ? 'good' : 'bad'}">${signed(pr.ev.toFixed(2))}</div><div class="k">Model EV a $</div></div>` : '';
+  fitStats($('parlayTotals'));
   $('savedList').innerHTML = P.saved.length ? P.saved.slice().reverse().map(sp => {
     const grades = sp.legs.map(gradeLeg);
     const status = grades.includes('loss') ? 'loss' : grades.includes('pending') ? 'pending' : grades.every(x => x === 'push') ? 'push' : 'win';
@@ -738,7 +1072,7 @@ function renderParlays() {
     return `<div class="saved"><div class="top"><b>${sp.legs.length}-leg parlay · ${sp.am}</b><span><span class="tag ${status === 'pending' ? '' : status}">${status}${pays !== null ? ' · $' + pays : ''}</span> <button class="btn tiny quiet" data-del="${sp.id}">delete</button></span></div>
       <div class="small muted">$${sp.stake} · saved ${sp.at.slice(0, 10)} · model ${pct1(sp.p)} vs implied ${pct1(sp.imp)}</div>
       <div class="small">${sp.legs.map((l, i) => `<span class="tag ${grades[i] === 'pending' ? '' : grades[i]}">${esc(l.team)} ${l.kind === 'ml' ? 'ML' : fmtLine(l.line)} ${fmtOdds(l.odds)}</span>`).join(' ')}</div></div>`;
-  }).join('') : '<div class="empty">Nothing saved.</div>';
+  }).join('') : '<div class="empty"><b>Nothing saved</b>Build a parlay above and save it to follow it here.</div>';
 }
 $('legs').addEventListener('click', e => { const b = e.target.closest('button.x'); if (!b) return; P.legs.splice(+b.dataset.i, 1); save(); renderParlays(); });
 $('stake').addEventListener('input', renderParlays);
@@ -774,7 +1108,7 @@ function splits() {
 }
 function renderRecord() {
   const R = S.record; const f = S.model.fitted;
-  const stat = (k, v, cls) => `<div class="stat"><div class="k">${k}</div><div class="v ${cls || ''}">${v}</div></div>`;
+  const stat = (k, v, cls) => `<div class="stat"><div class="v ${cls || ''}">${v}</div><div class="k">${k}</div></div>`;
   const suPct = r => r.w + r.l ? pct1(r.w / (r.w + r.l)) : '—';
   const atsStr = r => `${r.w}-${r.l}${r.p ? '-' + r.p : ''}`;
   const X = splits();
@@ -787,11 +1121,30 @@ function renderRecord() {
   $('recordNote').textContent = `The record that counts is the calls made before kickoff, frozen there and graded on the score: ${X.live.su.w}-${X.live.su.l}` +
     (X.book.games ? `, against ${X.book.book.w}-${X.book.book.l} for simply taking DraftKings' favourite on the same ${X.book.games} games` : '') +
     `. Against the spread, every game where the model disagreed with the DraftKings line by ${S.atsEdge} points or more. ${X.replayed.su.w + X.replayed.su.l ? `${X.replayed.su.w + X.replayed.su.l} games were over before the job first ran and are graded from the replay (honest walk-forward calls, but never shown before kickoff, without a line); ${X.fcs} of all the games graded were against FCS schools.` : ''}`;
+  fitStats($('recordTotals'));
   const weeks = Object.keys(R.byWeek).sort((a, b) => (a === 'post') - (b === 'post') || a - b);
   $('recWeek').innerHTML = '<thead><tr><th>Week</th><th class="n">SU</th><th class="n">Rate</th><th class="n">ATS</th></tr></thead><tbody>' + weeks.map(w => `<tr><td>${w === 'post' ? 'Postseason' : 'Week ' + w}</td><td class="n">${R.byWeek[w].su.w}-${R.byWeek[w].su.l}</td><td class="n">${suPct(R.byWeek[w].su)}</td><td class="n">${atsStr(R.byWeek[w].ats)}</td></tr>`).join('') + '</tbody>';
   $('recBand').innerHTML = '<thead><tr><th>Model chance</th><th class="n">SU</th><th class="n">Rate</th><th class="n">ATS</th></tr></thead><tbody>' + ['80+', '65-80', '50-65'].filter(b => R.bands[b]).map(b => `<tr><td>${b}%</td><td class="n">${R.bands[b].su.w}-${R.bands[b].su.l}</td><td class="n">${suPct(R.bands[b].su)}</td><td class="n">${atsStr(R.bands[b].ats)}</td></tr>`).join('') + '</tbody>';
   $('fitNote').textContent = `Elo with K ${S.model.params.K}, ${Math.round(S.model.params.carry * 100)}% of a rating carried between seasons, ${S.model.params.hfa} Elo of home field and a margin-of-victory multiplier, chosen by log loss on ${f.seasons[0]}-${f.seasons[f.seasons.length - 1]} (${f.games} games, ${pct1(f.accuracy)} of winners called). Held out, ${f.holdout}: ${pct1(f.holdoutAccuracy)} of winners, spread off by ${f.holdoutSpreadMae} points on average; the margin's standard deviation of ${S.model.sd.toFixed(1)} is what the cover chances use.`;
 }
+
+/* a tile's figure is never cut or spilled: a long one (a payout on a big stake) steps down until it fits its tile */
+function fitStats(root) {
+  for (const v of (root || document).querySelectorAll('.stat .v')) {
+    v.style.fontSize = ''; if (!v.clientWidth) continue;
+    let f = parseFloat(getComputedStyle(v).fontSize);
+    while (v.scrollWidth > v.clientWidth + .5 && f > 12) { f -= 1; v.style.fontSize = f + 'px'; }
+  }
+}
+let fitQueued = false;
+window.addEventListener('resize', () => { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitStats(); }); });
+/* on a phone the header sticks with only its tabs showing: --nav-top is how far down it they sit */
+/* the header's height moves when the web fonts land */
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { navTop(); fitStats(); });
+function navTop() { const t = $('tabs').offsetTop || 0; document.documentElement.style.setProperty('--nav-top', t + 'px'); stuck(); }
+function stuck() { const h = document.querySelector('header'); h.classList.toggle('stuck', h.getBoundingClientRect().top < -1); }
+window.addEventListener('scroll', stuck, { passive: true });
+window.addEventListener('resize', navTop);
 
 /* ---------- boot ---------- */
 async function boot() {
@@ -804,7 +1157,9 @@ async function boot() {
   const X = splits();
   const first = S.games.filter(g => g.type === 2).map(g => g.date).sort()[0];
   const phase = S.phase === 'over' ? 'season complete' : S.phase === 'opening' && first ? `opens ${shortDate(first)}` : S.week === 'post' ? 'postseason' : 'week ' + S.week;
-  $('stamp').innerHTML = `<b>${S.season} season · ${phase}</b> published ${pub.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · ${X.live.su.w}-${X.live.su.l} SU called before kickoff${X.book.games ? ` (DraftKings' favourite ${X.book.book.w}-${X.book.book.l})` : ''}, ${S.record.ats.w}-${S.record.ats.l} ATS`;
+  $('stamp').innerHTML = `<b>${S.season} season · ${phase}</b><span>${X.live.su.w}-${X.live.su.l} SU called before kickoff${X.book.games ? ` (DraftKings' favourite ${X.book.book.w}-${X.book.book.l})` : ''} · ${S.record.ats.w}-${S.record.ats.l} ATS</span>`;
+  navTop();
+  $('pubTag').textContent = `published ${pub.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · `;
   if ((S.notes || []).length) { $('runNotes').hidden = false; $('runNotes').innerHTML = S.notes.map(x => `<p>${esc(x)}</p>`).join(''); }
   weekOptions(); pruneLegs(); updateLegCount();
   const h = location.hash.slice(1);
