@@ -369,8 +369,21 @@ function holdRuns() {
 /* ================= the conference title games over, Army-Navy to come, no playoff game listed ================= */
 function titleRuns() {
   const d = folder('titles');
-  const confOf = note => Object.keys(real.confs).find(c => note.startsWith(real.confs[c].short + ' ') || note.startsWith(real.confs[c].name.replace(/ Conference$/, '') + ' '));
+  /* a title game's conference from its name, wherever the name stands in ESPN's note: a sponsor
+     can come first ("Edward Jones Big 12 Championship", from 21 October 2026), so the note is
+     searched, not read from its start, and the longest name found wins ("Mid-American" over
+     "American") */
+  const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const confOf = note => {
+    let best = null, len = 0;
+    for (const c of Object.keys(real.confs)) for (const n of [real.confs[c].short, real.confs[c].name.replace(/ Conference$/, '')]) {
+      if (n && n.length > len && new RegExp(`(^|[^A-Za-z-])${esc(n)} `, 'i').test(note)) { best = c; len = n.length; }
+    }
+    return best;
+  };
   const titles = sched.filter(g => g.type === 2 && /championship/i.test(g.note || ''));
+  const unnamed = titles.filter(g => !confOf(g.note));
+  chk(!unnamed.length, `every conference title game is named for a conference the state knows (${unnamed.map(g => `${g.id} "${g.note}"`).join('; ')})`);
   const rows = sched.map(g => {
     if (!titles.includes(g)) return g;
     const c = confOf(g.note); const two = Object.keys(real.teams).filter(id => real.teams[id].fbs && String(real.teams[id].conf) === String(c)).sort((a, b) => real.teams[b].rating - real.teams[a].rating);
