@@ -143,4 +143,30 @@ async function rankings(season) { return rankingsOf(await getJSON(RANKINGS), sea
 /* ESPN's stand-in for an opponent not decided yet: id -1 or -2, abbreviation TBD */
 const isPlaceholder = id => !(Number(id) > 0);
 
-module.exports = { RANKINGS, getJSON, scoreboard, gameRow, teamsOf, conferences, rankings, rankingsOf, isPlaceholder };
+/* The FBS conference a title game is played for, from its name wherever the conference's name
+   stands in it: a sponsor can come first ("Edward Jones Big 12 Championship", from October 2026)
+   and the longest name found wins ("Mid-American" over "American"). `confs` is the FBS
+   conference list (teams.json's, the state's). null for a name that is no FBS conference's. */
+const reEsc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function titleConf(note, confs) {
+  if (!note || !confs) return null;
+  let best = null, len = 0;
+  for (const c of Object.keys(confs)) for (const n of [confs[c].short, (confs[c].name || '').replace(/ Conference$/, '')]) {
+    if (n && n.length > len && new RegExp(`(^|[^A-Za-z-])${reEsc(n)} `, 'i').test(note)) { best = c; len = n.length; }
+  }
+  return best;
+}
+/* a conference title game: a regular-season championship named for an FBS conference. Not any
+   "championship": from November 2026 ESPN's FBS scoreboards also list the FCS playoff
+   ("FCS Championship - First Round"), which no FBS conference plays for */
+const isTitle = (g, confs) => g.type === 2 && /championship/i.test(g.note || '') && !!titleConf(g.note, confs);
+/* a game the FBS season does not include: the FCS playoff, by its name, or two teams already known
+   neither of whom plays in an FBS conference. `hconf`/`aconf` are each side's conference id */
+function outsideFbs(g, confs) {
+  if (/\bFCS\b/.test(g.note || '')) return true;
+  if (isPlaceholder(g.home) || isPlaceholder(g.away) || !confs) return false;
+  const fbs = c => c !== null && c !== undefined && Object.prototype.hasOwnProperty.call(confs, String(c));
+  return !fbs(g.hconf) && !fbs(g.aconf);
+}
+
+module.exports = { RANKINGS, getJSON, scoreboard, gameRow, teamsOf, conferences, rankings, rankingsOf, isPlaceholder, titleConf, isTitle, outsideFbs };

@@ -92,6 +92,13 @@ What the page shows is held to reality, in the job, on the page and in the gate:
   decided (`bracket.final`) once the conference title games are over with nothing left before the
   last of them, and from then the playoff odds play the bracket shown; they keep every played
   playoff result (a team out has no title chance) and use the real bracket once ESPN has it.
+  A conference title game is a regular-season championship named for an FBS conference, wherever
+  the name stands ("Edward Jones Big 12 Championship"): `isTitle` and `titleConf` in
+  `tools/espn.js`, the one rule the job, the smoke test and the simulation use. From November 2026
+  ESPN's FBS scoreboards also list the FCS playoff ("FCS Championship - First Round", weeks 13 on);
+  the job leaves it out (`outsideFbs`), with any game between two known teams neither of them FBS,
+  and so does the history's pull of a finished season: it would hold the week open, delay the
+  bracket and be graded into the record. The smoke test fails a state that has one.
 - CFB News keeps football headlines only, from after each team's last game, none naming an
   opponent already played; marks a season leader the injury report or a headline has out; lists
   real injury statuses; compares sacks a game; a feed that does not answer is named in the window

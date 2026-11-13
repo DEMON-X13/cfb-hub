@@ -24,6 +24,7 @@ const fs = require('fs'), path = require('path');
 const { execFileSync } = require('child_process');
 const { JSDOM } = require('jsdom');
 const C = require('./season');
+const E = require('./espn');
 const ROOT = path.join(__dirname, '..');
 const HTML = fs.readFileSync(process.env.CFB_HTML || path.join(ROOT, 'index.html'), 'utf8');   // CFB_HTML: another page, for the gate's own tests
 const STATE_PATH = process.env.CFB_STATE || path.join(ROOT, 'state.json');
@@ -428,6 +429,15 @@ function stateChecks() {
     for (const g of S.games.filter(x => x.carried)) chk((S.notes || []).some(n => /did not answer|no longer in ESPN/.test(n)), `a game carried from the last publish is explained in the run's notes: ${g.id}`);
   } else skip(`state.json predates schema 2: its ${S.games.filter(g => g.state === 'pre' && g.line && g.line.at !== run).length} lines older than its run are only checked on the page`);
 
+  /* the FBS season only: the FCS playoff ESPN's FBS scoreboards list from November 2026, or a game
+     between two known teams neither of them FBS, is never in the state (it would hold the week
+     open, delay the bracket and be graded into the record) */
+  if (S.schema >= 2) {
+    const outside = S.games.filter(g => /\bFCS\b/.test(g.note || '') || (!isPh(g.home) && !isPh(g.away) && !S.teams[g.home]?.fbs && !S.teams[g.away]?.fbs));
+    chk(!outside.length, `no game outside the FBS season is in the state (${outside.slice(0, 3).map(g => `${g.id} "${g.note || 'no FBS team'}"`).join('; ')})`);
+    const unnamed = S.games.filter(g => g.type === 2 && /championship/i.test(g.note || '') && !/\bFCS\b/.test(g.note || '') && !E.isTitle(g, S.confs));
+    chk(!unnamed.length, `every regular-season championship is named for an FBS conference (${unnamed.map(g => `${g.id} "${g.note}"`).join('; ')})`);
+  }
   /* the current week is the first regular-season week with a game still to play, whatever the
      postseason has the same day (Army-Navy) */
   const open = S.games.filter(g => openAt(g, Date.parse(run)));
@@ -482,7 +492,7 @@ function playoffChecks() {
   /* the field is decided once the regular season is over, or once its conference title games are
      with nothing left to play before the last of them; from then on the odds play the bracket shown */
   const runMs = Date.parse(runOf(S));
-  const titles = S.games.filter(g => g.type === 2 && /championship/i.test(g.note || ''));
+  const titles = S.games.filter(g => E.isTitle(g, S.confs));
   const titleDay = titles.length ? Math.max(...titles.map(g => Date.parse(g.date))) : null;
   const decided = !S.games.some(g => g.type === 2 && openAt(g, runMs)) || (titles.length > 0 && !titles.some(g => openAt(g, runMs)) && !S.games.some(g => g.type === 2 && openAt(g, runMs) && Date.parse(g.date) <= titleDay));
   if (S.schema >= 2) chk(!!S.playoff.bracket.final === decided, `the bracket is final (${S.playoff.bracket.final}) exactly when the schedule has decided the field (${decided})`);

@@ -183,11 +183,18 @@ async function pullSeason(prev, notes) {
 
   if (!OFFLINE) { try { teams.confs = await E.conferences(); } catch (e) { log(`conferences: ${e.message}; the saved list kept`); } }
   if (!teams.confs || !Object.keys(teams.confs).length) throw new Refusal('no conference list: neither ESPN nor teams.json has one, so no team can be called FBS');
-  return { games: [...games.values()].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0), teams, rankings };
+  /* the FCS playoff, which ESPN's FBS scoreboards list from November 2026, and any game between two
+     teams neither of them FBS, are not this site's season: never called, graded or counted */
+  const outside = [...games.values()].filter(g => E.outsideFbs(g, teams.confs));
+  if (outside.length) log(`${outside.length} games outside the FBS season left out (${[...new Set(outside.map(g => g.note || 'no FBS team'))].slice(0, 4).join('; ')})`);
+  const kept = [...games.values()].filter(g => !E.outsideFbs(g, teams.confs));
+  return { games: kept.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0), teams, rankings };
 }
 
 /* data/history.json must reach the season before this one: on the first run of a new season
    the season just finished is pulled from the same scoreboards and appended */
+/* the FBS conference list as teams.json holds it (the rollover's pull leaves the FCS playoff out by it) */
+const confsNow = () => { try { return JSON.parse(fs.readFileSync(TEAMS, 'utf8')).confs || null; } catch (e) { return null; } };
 async function loadHistory(notes, prev) {
   let H = JSON.parse(fs.readFileSync(HISTORY, 'utf8'));
   const si = H.cols.indexOf('season');
@@ -198,7 +205,7 @@ async function loadHistory(notes, prev) {
     for (const s of need) {
       /* a scratch team table: last season's conferences must not overwrite this season's */
       let got;
-      try { got = await HIST.seasonRows(s, (y, w, t) => feed(`sb_${y}_${t}_${w}.json`, () => E.scoreboard(y, w, t)), {}); }
+      try { got = await HIST.seasonRows(s, (y, w, t) => feed(`sb_${y}_${t}_${w}.json`, () => E.scoreboard(y, w, t)), {}, confsNow()); }
       catch (e) { throw new Refusal(`history.json ends at ${last} and the ${s} season did not download (${e.message}); ${SEASON} cannot be rated without it. Run node tools/history.js ${s} ${s} when ESPN answers`); }
       /* held to the last publish of that season: a week that answered short is a hole */
       const short = prev && prev.season === s ? HIST.shortOf(got, prev.games.filter(g => g.state === 'final' && realGame(g)).map(g => ({ type: g.type, week: g.week }))) : [];
@@ -226,7 +233,7 @@ function standingsOf(teams, games, confs) {
     if (th) { hw ? th.w++ : th.l++; }
     if (ta) { hw ? ta.l++ : ta.w++; }
     const sameConf = teams[g.home]?.conf && teams[g.home].conf === teams[g.away]?.conf && teams[g.home].conf !== INDEPENDENTS;
-    if (sameConf && g.conf && !/championship/i.test(g.note || '')) { if (th) { hw ? th.cw++ : th.cl++; } if (ta) { hw ? ta.cl++ : ta.cw++; } }
+    if (sameConf && g.conf && !E.isTitle(g, confs)) { if (th) { hw ? th.cw++ : th.cl++; } if (ta) { hw ? ta.cl++ : ta.cw++; } }
   }
   return S;
 }
@@ -331,13 +338,13 @@ function cfpOf(games, rankings, ratings) {
 function playoffPicture(teams, games, ratings, model, rankings, confs) {
   /* a seeded generator so a run that changes nothing writes the same numbers */
   let seed = 20260901; const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
-  for (const g of games) g.isChamp = g.type === 2 && realGame(g) && /championship/i.test(g.note || '') && teams[g.home]?.conf && teams[g.home].conf === teams[g.away]?.conf;
+  for (const g of games) g.isChamp = realGame(g) && E.isTitle(g, confs) && teams[g.home]?.conf && teams[g.home].conf === teams[g.away]?.conf;
   const reg = games.filter(g => g.type === 2 && realGame(g) && g.state !== 'postponed');
   /* the field is decided once the regular season is over, or once every conference title game
      is over with no regular-season game left before the last of them (Army-Navy, a week later,
      is played after the committee has chosen) */
   const regOver = !games.some(g => g.type === 2 && isOpen(g));
-  const titles = games.filter(g => g.type === 2 && /championship/i.test(g.note || ''));
+  const titles = games.filter(g => E.isTitle(g, confs));
   const titleDay = titles.length ? Math.max(...titles.map(g => Date.parse(g.date))) : null;
   const titlesOver = titles.length > 0 && !titles.some(isOpen) && !games.some(g => g.type === 2 && isOpen(g) && Date.parse(g.date) <= titleDay);
   const decided = regOver || titlesOver;

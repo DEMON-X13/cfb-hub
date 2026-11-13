@@ -24,7 +24,7 @@ const COLS = ['id', 'season', 'type', 'week', 'date', 'home', 'away', 'hs', 'as'
 
 /* every final of one season, as history rows. fetchWeek(season, week, type) returns a
    scoreboard or throws; a throw fails the whole season */
-async function seasonRows(season, fetchWeek, teams = {}) {
+async function seasonRows(season, fetchWeek, teams = {}, confs = null) {
   const rows = new Map();
   const jobs = [];
   for (let w = 1; w <= 16; w++) jobs.push([w, 2]);
@@ -38,6 +38,7 @@ async function seasonRows(season, fetchWeek, teams = {}) {
         const g = E.gameRow(ev);
         if (!g || g.state !== 'final' || g.hs === null || g.as === null || g.season !== season) continue;
         if (E.isPlaceholder(g.home) || E.isPlaceholder(g.away)) continue;
+        if (E.outsideFbs(g, confs)) continue;   // the FCS playoff, or no FBS team: not the FBS season
         if (g.type !== 2) g.type = 3;
         rows.set(g.id, COLS.map(c => g[c]));
       }
@@ -92,7 +93,7 @@ async function main() {
   const H = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : null;
   const seasons = [], rows = [];
   for (let s = from; s <= to; s++) {
-    const r = await seasonRows(s, (y, w, t) => E.scoreboard(y, w, t), teams);
+    const r = await seasonRows(s, (y, w, t) => E.scoreboard(y, w, t), teams, teamsFile.confs || null);
     console.log(`${s}: ${r.length} games`);
     seasons.push(s); rows.push(...r);
   }
