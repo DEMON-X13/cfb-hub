@@ -37,6 +37,7 @@ const fs = require('fs'), path = require('path'), os = require('os');
 const { spawnSync } = require('child_process');
 const F = require('./fixtures');
 const C = require('./season');
+const E = require('./espn');
 
 const ROOT = path.join(__dirname, '..');
 const TOOLS = process.env.CFB_SIM_TOOLS || __dirname;
@@ -369,21 +370,12 @@ function holdRuns() {
 /* ================= the conference title games over, Army-Navy to come, no playoff game listed ================= */
 function titleRuns() {
   const d = folder('titles');
-  /* a title game's conference from its name, wherever the name stands in ESPN's note: a sponsor
-     can come first ("Edward Jones Big 12 Championship", from 21 October 2026), so the note is
-     searched, not read from its start, and the longest name found wins ("Mid-American" over
-     "American") */
-  const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const confOf = note => {
-    let best = null, len = 0;
-    for (const c of Object.keys(real.confs)) for (const n of [real.confs[c].short, real.confs[c].name.replace(/ Conference$/, '')]) {
-      if (n && n.length > len && new RegExp(`(^|[^A-Za-z-])${esc(n)} `, 'i').test(note)) { best = c; len = n.length; }
-    }
-    return best;
-  };
-  const titles = sched.filter(g => g.type === 2 && /championship/i.test(g.note || ''));
-  const unnamed = titles.filter(g => !confOf(g.note));
-  chk(!unnamed.length, `every conference title game is named for a conference the state knows (${unnamed.map(g => `${g.id} "${g.note}"`).join('; ')})`);
+  /* a title game and its conference: the job's own rule (espn.js), a sponsor's name and all; the
+     FCS playoff ESPN lists beside them is no title game and the job leaves it out */
+  const confOf = note => E.titleConf(note, real.confs);
+  const titles = sched.filter(g => E.isTitle(g, real.confs));
+  const unnamed = sched.filter(g => g.type === 2 && /championship/i.test(g.note || '') && !/\bFCS\b/.test(g.note || '') && !E.isTitle(g, real.confs));
+  chk(!unnamed.length, `every regular-season championship is named for an FBS conference (${unnamed.map(g => `${g.id} "${g.note}"`).join('; ')})`);
   const rows = sched.map(g => {
     if (!titles.includes(g)) return g;
     const c = confOf(g.note); const two = Object.keys(real.teams).filter(id => real.teams[id].fbs && String(real.teams[id].conf) === String(c)).sort((a, b) => real.teams[b].rating - real.teams[a].rating);
@@ -391,6 +383,17 @@ function titleRuns() {
   });
   chk(rows.filter(g => titles.some(t => t.id === g.id) && realG(g)).length >= 4, 'the schedule has conference title games to play');
   const titleDay = Math.max(...titles.map(g => Date.parse(g.date)));
+  /* the FCS playoff in the FBS feed, as ESPN lists it from November 2026: a round with its teams
+     after the title games, one still to be decided, and a game between two FCS teams with no FCS
+     in its name before them; the job leaves all three out, so none holds the week or the field */
+  const fcsIds = Object.keys(real.teams).filter(id => !isPh(id) && !real.teams[id].fbs).slice(0, 4);
+  const fcs = fcsIds.length === 4 ? [
+    Object.assign({}, titles[0], { id: '990000021', week: titles[0].week + 1, date: iso(titleDay + 6 * DAY), home: fcsIds[0], away: fcsIds[1], note: 'FCS Championship - Quarterfinals', neutral: false, tbd: false }),
+    Object.assign({}, titles[0], { id: '990000022', week: titles[0].week + 2, date: iso(titleDay + 13 * DAY), home: '-1', away: '-2', note: 'FCS Championship - Semifinals', neutral: false, tbd: true }),
+    Object.assign({}, titles[0], { id: '990000023', date: iso(titleDay - 1 * DAY), home: fcsIds[2], away: fcsIds[3], note: null, neutral: false, tbd: false }),
+  ] : [];
+  chk(fcs.length === 3, `the state has FCS teams to play an FCS playoff with (${fcsIds.length})`);
+  rows.push(...fcs);
   const later = rows.filter(g => g.type === 2 && realG(g) && Date.parse(g.date) > titleDay);
   const now = titleDay + 14 * H;
   writeFeeds(d, SEASON0, rows, g => g.type === 2 && realG(g) && Date.parse(g.date) <= titleDay ? { state: 'final', hs: score(g).hs, as: score(g).as, detail: 'Final' } : { state: 'pre', hs: null, as: null }, () => null);
@@ -401,6 +404,8 @@ function titleRuns() {
   const seat = new Map(S.playoff.bracket.field.map(f => [f.team, f.seed]));
   chk(S.playoff.bracket.final && !S.playoff.bracket.set && (!later.length || S.phase === 'regular'), `the title games over: the field is decided before ESPN lists the playoff (${S.playoff.bracket.final}, ${S.playoff.bracket.set}, ${S.phase}, week ${S.week})`);
   chk(Object.entries(S.playoff.odds).every(([id, o]) => o.playoff === (seat.has(id) ? 1 : 0) && o.bye === (seat.has(id) && seat.get(id) <= 4 ? 1 : 0)), 'the title games over: the odds play the bracket shown, nobody else in');
+  const leftIn = S.games.filter(g => fcs.some(f => f.id === g.id) || /\bFCS\b/.test(g.note || ''));
+  chk(!leftIn.length, `the title games over: the FCS playoff and a game with no FBS team are left out of the state (${leftIn.map(g => g.id).join(', ')})`);
   smoke('the title games over', d, now, null);
 }
 
@@ -496,7 +501,9 @@ function rollover() {
   if (r.code !== 0) return;
   const S = read(path.join(d, 'state.json')); const Hn = read(path.join(d, 'history.json'));
   const si = Hn.cols.indexOf('season');
-  chk(Hn.rows.filter(x => x[si] === SEASON0).length === done.length, `${SEASON0} is appended to the history (${Hn.rows.filter(x => x[si] === SEASON0).length} games)`);
+  /* every game of the FBS season: the FCS playoff ESPN listed beside it is left out of the history as it is of the state */
+  const inSeason = done.filter(g => !E.outsideFbs(Object.assign({}, g, { hconf: real.teams[g.home]?.conf ?? null, aconf: real.teams[g.away]?.conf ?? null }), real.confs));
+  chk(Hn.rows.filter(x => x[si] === SEASON0).length === inSeason.length, `${SEASON0} is appended to the history (${Hn.rows.filter(x => x[si] === SEASON0).length} games of ${inSeason.length})`);
   chk(S.season === next && S.phase === 'opening' && !S.rankings.ap, `${next} opens on its own schedule, with no poll of last season's (${S.season}, ${S.phase}, ${Object.keys(S.rankings)})`);
   smoke(`the first run of ${next}`, d, now, null);
 }
