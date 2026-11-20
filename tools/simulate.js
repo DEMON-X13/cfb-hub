@@ -299,7 +299,11 @@ function holdRuns() {
   const fbsG = g => realG(g) && real.teams[g.home] && real.teams[g.away] && real.teams[g.home].fbs && real.teams[g.away].fbs;
   const wW = wk(W).filter(fbsG).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
   /* a game with another kicking off within the next 20 hours: the one held, the other's line read too long ago */
-  const major = g => real.teams[g.home].major || real.teams[g.away].major;
+  /* a major school by its conference (a power conference or Notre Dame), never by the real poll:
+     the runs here stand on the simulation's own poll, so a team the real AP poll ranks this week
+     (Memphis, Tulane in November 2026) is no major school in them and not on the news's slate */
+  const P4 = new Set((real.p4 || []).map(String));
+  const major = g => [g.home, g.away].some(id => id === '87' || P4.has(String(real.teams[id].conf)));
   const i = wW.findIndex((g, j) => major(g) && j + 1 < wW.length && Date.parse(wW[j + 1].date) - Date.parse(g.date) < 20 * H && Date.parse(wW[j + 1].date) > Date.parse(g.date));
   if (i < 0) { chk(false, `week ${W} has no two FBS games within 20 hours to hold a line on`); return; }
   const tgt = wW[i], g3 = wW[i + 1], k = Date.parse(tgt.date);
@@ -327,6 +331,7 @@ function holdRuns() {
   r = run('news.js', d, tA);
   const nA = r.code === 0 ? read(path.join(d, 'news.json')).games.find(x => x.id === tgt.id) : null;
   chk(nA && nA.line && !/last read/.test(nA.line) && !nA.stale, `hold run A: the news cites the line read at this run as today's (${nA && nA.line})`);
+  if (!nA) { chk(false, `hold run A: the held game ${tgt.id} is not on the news's slate, so the runs after it cannot be checked`); return; }
   const NA = path.join(d, 'newsA.json'); if (fs.existsSync(path.join(d, 'news.json'))) fs.copyFileSync(path.join(d, 'news.json'), NA);
   smoke('hold run A', d, tA, null);
   /* the publish before run B read g3's line more than a day ago (made so: the job ran, ESPN had it then) */

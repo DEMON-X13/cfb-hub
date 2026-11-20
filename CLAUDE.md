@@ -119,8 +119,9 @@ What the page shows is held to reality, in the job, on the page and in the gate:
   week of the last one), with the smoke after each; `CFB_SIM_TOOLS` runs a mutated copy of the job
   through it, which must fail.
 
-`.github/workflows/update.yml` runs `simulate.js`, the job, the news and the strict smoke 17 times a
-week, set by when each run must land: GitHub starts this repo's scheduled runs 3 to 9 hours late,
+`.github/workflows/update.yml` runs the job, the news and the strict smoke, commits, then runs
+`simulate.js` (after the commit: its weeks are built from the real schedule, and a change in ESPN's
+data that trips it must not hold the site back; it still turns the run red), 17 times a week, set by when each run must land: GitHub starts this repo's scheduled runs 3 to 9 hours late,
 so a slot that must land before a kickoff is queued about ten hours ahead (daily 06:17 UTC for
 Saturday's noon games, Saturday 10:17 for the afternoon, daily 13:47 for any evening), and slots
 meant to land after the finals or the Sunday AP poll are queued at them. It commits
