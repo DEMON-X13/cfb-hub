@@ -46,11 +46,6 @@ jobs:
           node-version: 22
       - run: npm ci
         working-directory: tools
-      # The job proved first on fabricated weeks (a kickoff, a failed feed, a dropped line or
-      # game, a postponement, a line held for the grade, Army-Navy week, the title games, the
-      # playoff, a new season), offline, in a scratch folder
-      - name: Simulate the job over a fabricated season
-        run: node tools/simulate.js
       # Exits 1 and writes nothing when a scoreboard the season needs did not download (the
       # last publish stays live); a far-off week or the polls that fail are carried and said so
       - name: Read the season, rate, call, grade and write state.json
@@ -78,3 +73,13 @@ jobs:
             done
             [ "$ok" = 1 ]
           fi
+      # The job proved on fabricated weeks (a kickoff, a failed feed, a dropped line or game, a
+      # postponement, a line held for the grade, Army-Navy week, the title games, the playoff, a new
+      # season), offline, in a scratch folder. After the commit, not before: its weeks are built from
+      # the real schedule, and three times in October and November 2026 a change in ESPN's data (a
+      # sponsor's name on a title game, the FCS playoff in the FBS feed, a team ranked in the real
+      # poll) tripped it and held the site back for days. What is published is gated by the strict
+      # smoke above, against reality; a failure here still turns the run red, the site live meanwhile.
+      - name: Simulate the job over a fabricated season
+        if: ${{ !cancelled() }}
+        run: node tools/simulate.js

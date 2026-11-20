@@ -94,5 +94,6 @@ ESPN or the clock).
 `.github/workflows/update.yml` runs 17 times a week (daily 06:17 and 13:47 UTC, Saturday 10:17 and
 21:47, Sunday 17:47), each queued about ten hours before the kickoffs it must precede or at the
 finals and polls it follows, since GitHub starts this repo's runs 3 to 9 hours late; it runs
-`simulate.js`, the job, the news and the strict smoke, and commits `state.json`,
-`news.json`, `data/teams.json` and, at a rollover, `data/history.json`.
+the job, the news and the strict smoke, commits `state.json`, `news.json`, `data/teams.json`
+and, at a rollover, `data/history.json`, and then runs `simulate.js`, which turns the run red
+without holding back the publish.
